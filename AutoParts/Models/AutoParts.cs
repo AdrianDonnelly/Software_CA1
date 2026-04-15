@@ -36,7 +36,7 @@ public class AutoPart
     
     // Nav
     [ForeignKey("VehicleId")]
-    public Vehicle Vehicle { get; set; } = null!;
+    public Vehicle? Vehicle { get; set; }
     
     [MaxLength(1000)]
     public string? Description { get; set; }
