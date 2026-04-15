@@ -2,12 +2,15 @@ using Microsoft.EntityFrameworkCore;
 using AutoParts.Data;
 
 var builder = WebApplication.CreateBuilder(args);
-
-// Add DbContext - CHANGED TO SQLITE
 builder.Services.AddDbContext<AutoPartsDbContext>(options =>
     options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
+    });
+
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
@@ -28,8 +31,11 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseHttpsRedirection();
-app.UseCors("AllowAll");
+if (!app.Environment.IsDevelopment())
+{
+    app.UseHttpsRedirection();
+    
+}app.UseCors("AllowAll");
 app.UseAuthorization();
 app.MapControllers();
 
