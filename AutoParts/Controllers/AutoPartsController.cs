@@ -1,5 +1,5 @@
 ﻿namespace AutoParts.Controllers;
 
-public class AutoPartController{
+public class AutoPartsController{
     
 }

@@ -1,5 +1,5 @@
 ﻿namespace AutoParts.Data;
 
-public class VehicleData{
+public class VehicleDbContext{
     
 }
