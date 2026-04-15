@@ -123,6 +123,7 @@ appsettings.*.json
 *.mdf
 *.ldf
 *.ndf
+*.db
 
 # Azure-specific
 *.pubxml

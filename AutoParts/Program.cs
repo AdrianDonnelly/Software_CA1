@@ -3,7 +3,7 @@ using AutoParts.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddDbContext<AutoPartsDbContext>(options =>
-    options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseNpgsql(builder.Configuration.GetConnectionString("SupabaseConnection")));
 
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
@@ -25,17 +25,16 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+app.UseSwagger();
+app.UseSwaggerUI();
 
 if (!app.Environment.IsDevelopment())
 {
     app.UseHttpsRedirection();
     
-}app.UseCors("AllowAll");
+}
+
+app.UseCors("AllowAll");
 app.UseAuthorization();
 app.MapControllers();
 
