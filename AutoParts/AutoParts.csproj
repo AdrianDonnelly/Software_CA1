@@ -17,9 +17,5 @@
         <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="9.0.0" />
         <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.0" />
     </ItemGroup>
-    
-    <ItemGroup>
-      <Content Include=".github\workflows\azure-deploy.yml" />
-    </ItemGroup>
 
 </Project>
