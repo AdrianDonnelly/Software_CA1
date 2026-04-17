@@ -13,7 +13,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.lifecycleScope
-import com.example.carparts.data.remote.AuthRepository
+import com.example.carparts.data.remote.SupaBaseClient
 import com.example.carparts.ui.theme.CarPartsTheme
 import kotlinx.coroutines.launch
 
@@ -24,13 +24,10 @@ class MainActivity : ComponentActivity() {
 
         lifecycleScope.launch {
             try {
-                AuthRepository.signUp(
-                    "test@gmail.com",
-                    "12345678"
-                )
-                Log.d("AUTH", "Signup worked")
+                SupaBaseClient.testVehicles()
+                Log.d("SUPABASE", "testVehicles ran")
             } catch (e: Exception) {
-                Log.e("AUTH", "Error: ${e.message}")
+                Log.e("SUPABASE", "Error: ${e.message}")
             }
         }
 
