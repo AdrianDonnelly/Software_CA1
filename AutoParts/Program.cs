@@ -31,11 +31,33 @@ app.UseSwaggerUI();
 if (!app.Environment.IsDevelopment())
 {
     app.UseHttpsRedirection();
-    
 }
 
 app.UseCors("AllowAll");
 app.UseAuthorization();
 app.MapControllers();
+
+app.MapGet("/api/health/database", async (AutoPartsDbContext db) =>
+{
+    try
+    {
+        var canConnect = await db.Database.CanConnectAsync();
+        return Results.Ok(new 
+        { 
+            status = "healthy", 
+            connected = canConnect,
+            database = "Supabase",
+            message = "Database connection successful" 
+        });
+    }
+    catch (Exception ex)
+    {
+        return Results.Problem(
+            detail: ex.Message, 
+            statusCode: 500,
+            title: "Database connection failed"
+        );
+    }
+});
 
 app.Run();
