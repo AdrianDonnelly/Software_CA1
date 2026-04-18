@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -28,14 +29,25 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Badge
+import androidx.compose.material3.BadgedBox
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -44,11 +56,14 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
+import com.example.carparts.data.remote.AuthRepository
 import com.example.carparts.data.remote.SupaBaseClient
 import com.example.carparts.ui.theme.CarPartsTheme
+import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -57,11 +72,53 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             CarPartsTheme {
+                var isAuthenticated by remember { mutableStateOf(false) }
+                val basket = remember { mutableStateMapOf<String, Int>() }
+                val basketCount = basket.values.sum()
+                val snackbarHostState = remember { SnackbarHostState() }
+                val scope = rememberCoroutineScope()
+
                 Scaffold(
                     modifier = Modifier.fillMaxSize(),
-                    topBar = { CarPartsTopBar() }
+                    topBar = {
+                        if (isAuthenticated) {
+                            CarPartsTopBar(
+                                cartItemCount = basketCount,
+                                onSignOut = {
+                                    scope.launch {
+                                        AuthRepository.signOut()
+                                        isAuthenticated = false
+                                        snackbarHostState.showSnackbar("Signed out")
+                                    }
+                                }
+                            )
+                        }
+                    },
+                    snackbarHost = { SnackbarHost(hostState = snackbarHostState) }
                 ) { innerPadding ->
-                    PartsScreen(innerPadding = innerPadding)
+                    if (!isAuthenticated) {
+                        AuthScreen(
+                            innerPadding = innerPadding,
+                            onAuthSuccess = { message ->
+                                isAuthenticated = true
+                                scope.launch {
+                                    snackbarHostState.showSnackbar(message)
+                                }
+                            }
+                        )
+                    } else {
+                        PartsScreen(
+                            innerPadding = innerPadding,
+                            onAddToBasket = { part ->
+                                val key = part.basketKey()
+                                basket[key] = (basket[key] ?: 0) + 1
+                                val title = part.getFirstNonBlank("Name", "name", "title") ?: "Part"
+                                scope.launch {
+                                    snackbarHostState.showSnackbar("$title added to basket")
+                                }
+                            }
+                        )
+                    }
                 }
             }
         }
@@ -69,10 +126,138 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun PartsScreen(innerPadding: PaddingValues) {
+fun AuthScreen(
+    innerPadding: PaddingValues,
+    onAuthSuccess: (String) -> Unit
+) {
+    var email by remember { mutableStateOf("") }
+    var password by remember { mutableStateOf("") }
+    var isLoading by remember { mutableStateOf(false) }
+    var errorMessage by remember { mutableStateOf<String?>(null) }
+
+    fun validateInputs(): Boolean {
+        if (email.isBlank() || password.isBlank()) {
+            errorMessage = "Email and password are required."
+            return false
+        }
+        if (!email.contains("@")) {
+            errorMessage = "Enter a valid email."
+            return false
+        }
+        if (password.length < 6) {
+            errorMessage = "Password must be at least 6 characters."
+            return false
+        }
+        return true
+    }
+
+    val scope = rememberCoroutineScope()
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(innerPadding)
+            .padding(20.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Card(
+            colors = CardDefaults.cardColors(containerColor = Color(0xFFF8FAFC)),
+            elevation = CardDefaults.cardElevation(defaultElevation = 3.dp),
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(20.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Text(
+                    text = "Welcome to CarParts",
+                    fontSize = 24.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFF111827)
+                )
+                Text(
+                    text = "Sign in or create an account to continue.",
+                    color = Color(0xFF4B5563)
+                )
+
+                TextField(
+                    value = email,
+                    onValueChange = { email = it; errorMessage = null },
+                    label = { Text("Email") },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth()
+                )
+                TextField(
+                    value = password,
+                    onValueChange = { password = it; errorMessage = null },
+                    label = { Text("Password") },
+                    singleLine = true,
+                    visualTransformation = PasswordVisualTransformation(),
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                if (errorMessage != null) {
+                    Text(
+                        text = errorMessage ?: "",
+                        color = Color(0xFFB91C1C)
+                    )
+                }
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    Button(
+                        onClick = {
+                            if (!validateInputs()) return@Button
+                            isLoading = true
+                            scope.launch {
+                                AuthRepository.signIn(email.trim(), password)
+                                    .onSuccess { onAuthSuccess("Signed in successfully") }
+                                    .onFailure { errorMessage = it.message ?: "Sign in failed." }
+                                isLoading = false
+                            }
+                        },
+                        enabled = !isLoading,
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Text("Login")
+                    }
+
+                    Button(
+                        onClick = {
+                            if (!validateInputs()) return@Button
+                            isLoading = true
+                            scope.launch {
+                                AuthRepository.signUp(email.trim(), password)
+                                    .onSuccess { onAuthSuccess("Account created. You are logged in.") }
+                                    .onFailure { errorMessage = it.message ?: "Sign up failed." }
+                                isLoading = false
+                            }
+                        },
+                        enabled = !isLoading,
+                        modifier = Modifier.weight(1f),
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1E3A8A))
+                    ) {
+                        Text("Sign Up")
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun PartsScreen(
+    innerPadding: PaddingValues,
+    onAddToBasket: (Map<String, String>) -> Unit
+) {
     var parts by remember { mutableStateOf<List<Map<String, String>>>(emptyList()) }
     var isLoading by remember { mutableStateOf(true) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
+    var selectedPart by remember { mutableStateOf<Map<String, String>?>(null) }
 
     LaunchedEffect(Unit) {
         isLoading = true
@@ -137,41 +322,53 @@ fun PartsScreen(innerPadding: PaddingValues) {
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 items(parts) { part ->
-                    PartRow(part = part)
+                    val stockQuantity = part.readStockQuantity()
+                    PartRow(
+                        part = part,
+                        onClick = { selectedPart = part },
+                        onAddToBasket = { onAddToBasket(part) },
+                        canAddToBasket = stockQuantity > 0
+                    )
                 }
             }
         }
     }
+
+    selectedPart?.let { part ->
+        val stockQuantity = part.readStockQuantity()
+        PartDetailsDialog(
+            part = part,
+            onDismiss = { selectedPart = null },
+            onAddToBasket = { onAddToBasket(part) },
+            canAddToBasket = stockQuantity > 0
+        )
+    }
 }
 
 @Composable
-fun PartRow(part: Map<String, String>) {
-    val title = part.getFirstNonBlank("name", "part_name", "partname", "title")
+fun PartRow(
+    part: Map<String, String>,
+    onClick: () -> Unit,
+    onAddToBasket: () -> Unit,
+    canAddToBasket: Boolean
+) {
+    val title = part.getFirstNonBlank("Name", "name", "part_name", "partname", "title")
         ?: "Unnamed part"
-    val price = part.getFirstNonBlank("price", "cost", "unit_price")
-    val stock = part.getFirstNonBlank("stock", "quantity", "qty", "inventory")
-    val sku = part.getFirstNonBlank("sku", "part_number", "part_no", "id")
+    val price = part.getFirstNonBlank("Price", "price", "cost", "unit_price")
+    val stockQuantity = part.readStockQuantity()
+    val sku = part.getFirstNonBlank("PartNumber", "sku", "part_number", "part_no", "id")
+    val brand = part.getFirstNonBlank("Manufacturer", "manufacturer")
+    val category = part.getFirstNonBlank("Category", "category")
+    val condition = part.getFirstNonBlank("Condition", "condition")
     val imageUrl = part.getFirstNonBlank("ImageUrl", "image_url", "imageurl")
-
-    val detailRows = part
-        .filterKeys { key ->
-            key.lowercase() !in setOf(
-                "name", "part_name", "partname", "title",
-                "price", "cost", "unit_price",
-                "stock", "quantity", "qty", "inventory",
-                "sku", "part_number", "part_no", "id",
-                "imageurl", "image_url"
-            )
-        }
-        .entries
-        .take(4)
 
     Card(
         colors = CardDefaults.cardColors(
             containerColor = Color(0xFFF8FAFC)
         ),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier.fillMaxWidth(),
+        onClick = onClick
     ) {
         Column(
             modifier = Modifier
@@ -210,12 +407,12 @@ fun PartRow(part: Map<String, String>) {
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 Text(
-                    text = "Price: ${price ?: "-"}",
+                    text = "Price: ${price.toPriceLabel()}",
                     color = Color(0xFF1F2937)
                 )
 
                 Text(
-                    text = "Stock: ${stock ?: "-"}",
+                    text = stockQuantity.toStockLabel(),
                     color = Color(0xFF1F2937)
                 )
             }
@@ -227,17 +424,108 @@ fun PartRow(part: Map<String, String>) {
                 )
             }
 
-            if (detailRows.isNotEmpty()) {
-                HorizontalDivider(color = Color(0xFFD1D5DB))
-                detailRows.forEach { (key, value) ->
-                    Text(
-                        text = "$key: $value",
-                        color = Color(0xFF374151)
-                    )
-                }
+            if (brand != null || category != null || condition != null) {
+                Text(
+                    text = listOfNotNull(brand, category, condition).joinToString(" • "),
+                    color = Color(0xFF4B5563),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
+
+            Spacer(modifier = Modifier.height(4.dp))
+
+            Button(
+                onClick = onAddToBasket,
+                enabled = canAddToBasket,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(if (canAddToBasket) "Add to Basket (Test)" else "Out of Stock")
             }
         }
     }
+}
+
+@Composable
+fun PartDetailsDialog(
+    part: Map<String, String>,
+    onDismiss: () -> Unit,
+    onAddToBasket: () -> Unit,
+    canAddToBasket: Boolean
+) {
+    val title = part.getFirstNonBlank("Name", "name", "part_name", "partname", "title")
+        ?: "Part details"
+    val partNumber = part.getFirstNonBlank("PartNumber", "part_number", "sku")
+    val category = part.getFirstNonBlank("Category", "category")
+    val manufacturer = part.getFirstNonBlank("Manufacturer", "manufacturer")
+    val condition = part.getFirstNonBlank("Condition", "condition")
+    val description = part.getFirstNonBlank("Description", "description")
+    val vehicleId = part.getFirstNonBlank("VehicleId", "vehicleid")
+    val partId = part.getFirstNonBlank("PartId", "partid", "id")
+    val stockQuantity = part.readStockQuantity()
+    val price = part.getFirstNonBlank("Price", "price")
+    val imageUrl = part.getFirstNonBlank("ImageUrl", "image_url", "imageurl")
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        confirmButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Close")
+            }
+        },
+        dismissButton = {
+            Button(
+                onClick = onAddToBasket,
+                enabled = canAddToBasket
+            ) {
+                Text(if (canAddToBasket) "Add to Basket (Test)" else "Out of Stock")
+            }
+        },
+        title = {
+            Text(
+                text = title,
+                fontWeight = FontWeight.Bold
+            )
+        },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                if (imageUrl != null) {
+                    AsyncImage(
+                        model = imageUrl,
+                        contentDescription = title,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(180.dp)
+                            .clip(RoundedCornerShape(12.dp)),
+                        contentScale = ContentScale.Crop
+                    )
+                }
+
+                HorizontalDivider(color = Color(0xFFD1D5DB))
+                Text("Product Info", fontWeight = FontWeight.SemiBold, color = Color(0xFF111827))
+                Text("SKU: ${partNumber ?: "-"}", color = Color(0xFF374151))
+                Text("Brand: ${manufacturer ?: "-"}", color = Color(0xFF374151))
+                Text("Category: ${category ?: "-"}", color = Color(0xFF374151))
+                Text("Condition: ${condition ?: "-"}", color = Color(0xFF374151))
+                Text("Part ID: ${partId ?: "-"}", color = Color(0xFF374151))
+
+                HorizontalDivider(color = Color(0xFFD1D5DB))
+                Text("Pricing & Stock", fontWeight = FontWeight.SemiBold, color = Color(0xFF111827))
+                Text("Price: ${price.toPriceLabel()}", color = Color(0xFF374151))
+                Text(stockQuantity.toStockLabel(), color = Color(0xFF374151))
+
+                HorizontalDivider(color = Color(0xFFD1D5DB))
+                Text("Compatibility", fontWeight = FontWeight.SemiBold, color = Color(0xFF111827))
+                Text("Vehicle ID: ${vehicleId ?: "-"}", color = Color(0xFF374151))
+
+                if (!description.isNullOrBlank()) {
+                    HorizontalDivider(color = Color(0xFFD1D5DB))
+                    Text("Description", fontWeight = FontWeight.SemiBold, color = Color(0xFF111827))
+                    Text(description, color = Color(0xFF374151))
+                }
+            }
+        }
+    )
 }
 
 private fun Map<String, String>.getFirstNonBlank(vararg keys: String): String? {
@@ -248,7 +536,10 @@ private fun Map<String, String>.getFirstNonBlank(vararg keys: String): String? {
 }
 
 @Composable
-fun CarPartsTopBar() {
+fun CarPartsTopBar(
+    cartItemCount: Int,
+    onSignOut: () -> Unit
+) {
     Surface(
         tonalElevation = 4.dp,
         shadowElevation = 4.dp,
@@ -260,10 +551,10 @@ fun CarPartsTopBar() {
                 .padding(horizontal = 16.dp, vertical = 14.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            IconButton(onClick = { }) {
+            IconButton(onClick = onSignOut) {
                 Icon(
                     imageVector = Icons.Default.Menu,
-                    contentDescription = "Menu",
+                    contentDescription = "Sign out",
                     tint = Color(0xFF1E3A8A)
                 )
             }
@@ -277,19 +568,57 @@ fun CarPartsTopBar() {
                 modifier = Modifier.weight(1f)
             )
 
-            Box(
-                modifier = Modifier
-                    .size(40.dp)
-                    .clip(CircleShape)
-                    .background(Color(0xFFDCEAF7)),
-                contentAlignment = Alignment.Center
+            BadgedBox(
+                badge = {
+                    if (cartItemCount > 0) {
+                        Badge {
+                            Text(
+                                text = cartItemCount.toString(),
+                                fontSize = 10.sp
+                            )
+                        }
+                    }
+                }
             ) {
-                Icon(
-                    imageVector = Icons.Default.Person,
-                    contentDescription = "Profile",
-                    tint = Color(0xFF1E3A8A)
-                )
+                Box(
+                    modifier = Modifier
+                        .size(40.dp)
+                        .clip(CircleShape)
+                        .background(Color(0xFFDCEAF7)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Person,
+                        contentDescription = "Basket",
+                        tint = Color(0xFF1E3A8A)
+                    )
+                }
             }
         }
+    }
+}
+
+private fun Map<String, String>.basketKey(): String {
+    return getFirstNonBlank("PartId", "partid", "id", "PartNumber", "sku", "Name", "name")
+        ?: "unknown-part"
+}
+
+private fun Map<String, String>.readStockQuantity(): Int {
+    return getFirstNonBlank("StockQuantity", "stockquantity", "stock", "quantity", "qty", "inventory")
+        ?.toIntOrNull()
+        ?.coerceAtLeast(0)
+        ?: 0
+}
+
+private fun String?.toPriceLabel(): String {
+    val number = this?.toDoubleOrNull()
+    return if (number == null) "-" else "$%.2f".format(number)
+}
+
+private fun Int.toStockLabel(): String {
+    return when {
+        this <= 0 -> "Out of stock"
+        this <= 5 -> "Low stock ($this)"
+        else -> "In stock ($this)"
     }
 }
