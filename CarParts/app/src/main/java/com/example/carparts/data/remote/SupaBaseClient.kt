@@ -18,16 +18,22 @@ object SupaBaseClient {
     private val supabaseUrl = BuildConfig.SUPABASE_URL
     private val supabaseAnonKey = BuildConfig.SUPABASE_ANON_KEY
 
-    val client = createSupabaseClient(
-        supabaseUrl = supabaseUrl,
-        supabaseKey = supabaseAnonKey
-    ) {
-        install(plugin = Auth)
-        install(plugin = Postgrest)
+    private val client by lazy {
+        createSupabaseClient(
+            supabaseUrl = supabaseUrl,
+            supabaseKey = supabaseAnonKey
+        ) {
+            install(plugin = Auth)
+            install(plugin = Postgrest)
+        }
     }
 
     suspend fun testVehicles() {
         try {
+            if (supabaseUrl.isBlank() || supabaseAnonKey.isBlank()) {
+                Log.e("SUPABASE", "Missing SUPABASE_URL or SUPABASE_ANON_KEY in local.properties")
+                return
+            }
             val result = client
                 .from("Vehicles")
                 .select()
