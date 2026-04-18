@@ -18,7 +18,7 @@ object SupaBaseClient {
     private val supabaseUrl = BuildConfig.SUPABASE_URL
     private val supabaseAnonKey = BuildConfig.SUPABASE_ANON_KEY
 
-    private val client by lazy {
+    val client by lazy {
         createSupabaseClient(
             supabaseUrl = supabaseUrl,
             supabaseKey = supabaseAnonKey
@@ -55,7 +55,7 @@ object SupaBaseClient {
             }
 
             val responseData = client
-                .from("parts")
+                .from("AutoParts")
                 .select()
                 .data
 

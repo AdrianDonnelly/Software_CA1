@@ -12,9 +12,11 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
@@ -39,10 +41,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.AsyncImage
 import com.example.carparts.data.remote.SupaBaseClient
 import com.example.carparts.ui.theme.CarPartsTheme
 
@@ -147,6 +151,7 @@ fun PartRow(part: Map<String, String>) {
     val price = part.getFirstNonBlank("price", "cost", "unit_price")
     val stock = part.getFirstNonBlank("stock", "quantity", "qty", "inventory")
     val sku = part.getFirstNonBlank("sku", "part_number", "part_no", "id")
+    val imageUrl = part.getFirstNonBlank("ImageUrl", "image_url", "imageurl")
 
     val detailRows = part
         .filterKeys { key ->
@@ -154,7 +159,8 @@ fun PartRow(part: Map<String, String>) {
                 "name", "part_name", "partname", "title",
                 "price", "cost", "unit_price",
                 "stock", "quantity", "qty", "inventory",
-                "sku", "part_number", "part_no", "id"
+                "sku", "part_number", "part_no", "id",
+                "imageurl", "image_url"
             )
         }
         .entries
@@ -176,6 +182,18 @@ fun PartRow(part: Map<String, String>) {
             if (part.isEmpty()) {
                 Text(text = "Empty row")
                 return@Column
+            }
+
+            if (imageUrl != null) {
+                AsyncImage(
+                    model = imageUrl,
+                    contentDescription = title,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(180.dp)
+                        .clip(RoundedCornerShape(12.dp)),
+                    contentScale = ContentScale.Crop
+                )
             }
 
             Text(
