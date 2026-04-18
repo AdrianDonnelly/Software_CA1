@@ -34,6 +34,8 @@ import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -73,6 +75,8 @@ class MainActivity : ComponentActivity() {
         setContent {
             CarPartsTheme {
                 var isAuthenticated by remember { mutableStateOf(false) }
+                var selectedCategory by remember { mutableStateOf<String?>(null) }
+                var availableCategories by remember { mutableStateOf<List<String>>(emptyList()) }
                 val basket = remember { mutableStateMapOf<String, Int>() }
                 val basketCount = basket.values.sum()
                 val snackbarHostState = remember { SnackbarHostState() }
@@ -84,10 +88,14 @@ class MainActivity : ComponentActivity() {
                         if (isAuthenticated) {
                             CarPartsTopBar(
                                 cartItemCount = basketCount,
+                                selectedCategory = selectedCategory,
+                                categories = availableCategories,
+                                onCategorySelected = { selectedCategory = it },
                                 onSignOut = {
                                     scope.launch {
                                         AuthRepository.signOut()
                                         isAuthenticated = false
+                                        selectedCategory = null
                                         snackbarHostState.showSnackbar("Signed out")
                                     }
                                 }
@@ -109,6 +117,8 @@ class MainActivity : ComponentActivity() {
                     } else {
                         PartsScreen(
                             innerPadding = innerPadding,
+                            selectedCategory = selectedCategory,
+                            onCategoriesLoaded = { availableCategories = it },
                             onAddToBasket = { part ->
                                 val key = part.basketKey()
                                 basket[key] = (basket[key] ?: 0) + 1
@@ -252,6 +262,8 @@ fun AuthScreen(
 @Composable
 fun PartsScreen(
     innerPadding: PaddingValues,
+    selectedCategory: String?,
+    onCategoriesLoaded: (List<String>) -> Unit,
     onAddToBasket: (Map<String, String>) -> Unit
 ) {
     var parts by remember { mutableStateOf<List<Map<String, String>>>(emptyList()) }
@@ -265,13 +277,24 @@ fun PartsScreen(
 
         SupaBaseClient.fetchParts()
             .onSuccess { fetchedParts ->
-                parts = fetchedParts
+                parts = fetchedParts.shuffled()
+                onCategoriesLoaded(
+                    fetchedParts.mapNotNull { it.readCategoryName() }
+                        .distinct()
+                        .sorted()
+                )
             }
             .onFailure { error ->
                 errorMessage = error.message ?: "Failed to load parts from Supabase."
             }
 
         isLoading = false
+    }
+
+    val visibleParts = if (selectedCategory.isNullOrBlank()) {
+        parts
+    } else {
+        parts.filter { it.matchesCategory(selectedCategory) }
     }
 
     when {
@@ -301,7 +324,7 @@ fun PartsScreen(
             }
         }
 
-        parts.isEmpty() -> {
+        visibleParts.isEmpty() -> {
             Box(
                 modifier = Modifier
                     .fillMaxSize()
@@ -309,7 +332,12 @@ fun PartsScreen(
                     .padding(16.dp),
                 contentAlignment = Alignment.Center
             ) {
-                Text(text = "No parts found in your Supabase table.")
+                val message = if (selectedCategory.isNullOrBlank()) {
+                    "No parts found in your Supabase table."
+                } else {
+                    "No parts found in \"$selectedCategory\"."
+                }
+                Text(text = message)
             }
         }
 
@@ -321,7 +349,7 @@ fun PartsScreen(
                 contentPadding = PaddingValues(16.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                items(parts) { part ->
+                items(visibleParts) { part ->
                     val stockQuantity = part.readStockQuantity()
                     PartRow(
                         part = part,
@@ -538,8 +566,13 @@ private fun Map<String, String>.getFirstNonBlank(vararg keys: String): String? {
 @Composable
 fun CarPartsTopBar(
     cartItemCount: Int,
+    selectedCategory: String?,
+    categories: List<String>,
+    onCategorySelected: (String?) -> Unit,
     onSignOut: () -> Unit
 ) {
+    var categoryMenuExpanded by remember { mutableStateOf(false) }
+
     Surface(
         tonalElevation = 4.dp,
         shadowElevation = 4.dp,
@@ -551,16 +584,40 @@ fun CarPartsTopBar(
                 .padding(horizontal = 16.dp, vertical = 14.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            IconButton(onClick = onSignOut) {
-                Icon(
-                    imageVector = Icons.Default.Menu,
-                    contentDescription = "Sign out",
-                    tint = Color(0xFF1E3A8A)
-                )
+            Box {
+                IconButton(onClick = { categoryMenuExpanded = true }) {
+                    Icon(
+                        imageVector = Icons.Default.Menu,
+                        contentDescription = "Choose category",
+                        tint = Color(0xFF1E3A8A)
+                    )
+                }
+
+                DropdownMenu(
+                    expanded = categoryMenuExpanded,
+                    onDismissRequest = { categoryMenuExpanded = false }
+                ) {
+                    DropdownMenuItem(
+                        text = { Text("All parts") },
+                        onClick = {
+                            onCategorySelected(null)
+                            categoryMenuExpanded = false
+                        }
+                    )
+                    categories.forEach { category ->
+                        DropdownMenuItem(
+                            text = { Text(category) },
+                            onClick = {
+                                onCategorySelected(category)
+                                categoryMenuExpanded = false
+                            }
+                        )
+                    }
+                }
             }
 
             Text(
-                text = "CarParts",
+                text = selectedCategory?.let { "CarParts - $it" } ?: "CarParts",
                 fontSize = 24.sp,
                 fontWeight = FontWeight.ExtraBold,
                 color = Color(0xFF1E3A8A),
@@ -580,22 +637,32 @@ fun CarPartsTopBar(
                     }
                 }
             ) {
-                Box(
+                IconButton(
+                    onClick = onSignOut,
                     modifier = Modifier
                         .size(40.dp)
                         .clip(CircleShape)
-                        .background(Color(0xFFDCEAF7)),
-                    contentAlignment = Alignment.Center
+                        .background(Color(0xFFDCEAF7))
                 ) {
                     Icon(
                         imageVector = Icons.Default.Person,
-                        contentDescription = "Basket",
+                        contentDescription = "Sign out",
                         tint = Color(0xFF1E3A8A)
                     )
                 }
             }
         }
     }
+}
+
+private fun Map<String, String>.readCategoryName(): String? {
+    return getFirstNonBlank("Category", "category")
+        ?.trim()
+        ?.takeIf { it.isNotBlank() }
+}
+
+private fun Map<String, String>.matchesCategory(selectedCategory: String): Boolean {
+    return readCategoryName()?.equals(selectedCategory, ignoreCase = true) == true
 }
 
 private fun Map<String, String>.basketKey(): String {
