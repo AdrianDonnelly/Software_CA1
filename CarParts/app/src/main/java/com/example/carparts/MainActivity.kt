@@ -21,6 +21,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Card
@@ -77,8 +78,9 @@ class MainActivity : ComponentActivity() {
                 var isAuthenticated by remember { mutableStateOf(false) }
                 var selectedCategory by remember { mutableStateOf<String?>(null) }
                 var availableCategories by remember { mutableStateOf<List<String>>(emptyList()) }
-                val basket = remember { mutableStateMapOf<String, Int>() }
-                val basketCount = basket.values.sum()
+                var currentScreen by remember { mutableStateOf(HomeScreen.PARTS) }
+                val basket = remember { mutableStateMapOf<String, CartItem>() }
+                val basketCount = basket.values.sumOf { it.quantity }
                 val snackbarHostState = remember { SnackbarHostState() }
                 val scope = rememberCoroutineScope()
 
@@ -91,11 +93,14 @@ class MainActivity : ComponentActivity() {
                                 selectedCategory = selectedCategory,
                                 categories = availableCategories,
                                 onCategorySelected = { selectedCategory = it },
+                                onOpenCart = { currentScreen = HomeScreen.CART },
                                 onSignOut = {
                                     scope.launch {
                                         AuthRepository.signOut()
                                         isAuthenticated = false
                                         selectedCategory = null
+                                        currentScreen = HomeScreen.PARTS
+                                        basket.clear()
                                         snackbarHostState.showSnackbar("Signed out")
                                     }
                                 }
@@ -115,24 +120,69 @@ class MainActivity : ComponentActivity() {
                             }
                         )
                     } else {
-                        PartsScreen(
-                            innerPadding = innerPadding,
-                            selectedCategory = selectedCategory,
-                            onCategoriesLoaded = { availableCategories = it },
-                            onAddToBasket = { part ->
-                                val key = part.basketKey()
-                                basket[key] = (basket[key] ?: 0) + 1
-                                val title = part.getFirstNonBlank("Name", "name", "title") ?: "Part"
-                                scope.launch {
-                                    snackbarHostState.showSnackbar("$title added to basket")
+                        if (currentScreen == HomeScreen.CART) {
+                            CartScreen(
+                                innerPadding = innerPadding,
+                                items = basket.values.toList(),
+                                onBackToParts = { currentScreen = HomeScreen.PARTS },
+                                onCheckoutTest = {
+                                    scope.launch {
+                                        snackbarHostState.showSnackbar(
+                                            "Checkout (test) clicked. No DB stock updates yet."
+                                        )
+                                    }
+                                },
+                                onIncreaseItem = { key ->
+                                    basket[key]?.let { item ->
+                                        basket[key] = item.copy(quantity = item.quantity + 1)
+                                    }
+                                },
+                                onDecreaseItem = { key ->
+                                    basket[key]?.let { item ->
+                                        val updatedQuantity = item.quantity - 1
+                                        if (updatedQuantity <= 0) {
+                                            basket.remove(key)
+                                        } else {
+                                            basket[key] = item.copy(quantity = updatedQuantity)
+                                        }
+                                    }
                                 }
-                            }
-                        )
+                            )
+                        } else {
+                            PartsScreen(
+                                innerPadding = innerPadding,
+                                selectedCategory = selectedCategory,
+                                onCategoriesLoaded = { availableCategories = it },
+                                onAddToBasket = { part ->
+                                    val key = part.basketKey()
+                                    val existing = basket[key]
+                                    basket[key] = if (existing == null) {
+                                        CartItem(part = part, quantity = 1)
+                                    } else {
+                                        existing.copy(quantity = existing.quantity + 1)
+                                    }
+                                    val title = part.getFirstNonBlank("Name", "name", "title") ?: "Part"
+                                    scope.launch {
+                                        snackbarHostState.showSnackbar("$title added to basket")
+                                    }
+                                }
+                            )
+                        }
                     }
                 }
             }
         }
     }
+}
+
+data class CartItem(
+    val part: Map<String, String>,
+    val quantity: Int
+)
+
+private enum class HomeScreen {
+    PARTS,
+    CART
 }
 
 @Composable
@@ -569,6 +619,7 @@ fun CarPartsTopBar(
     selectedCategory: String?,
     categories: List<String>,
     onCategorySelected: (String?) -> Unit,
+    onOpenCart: () -> Unit,
     onSignOut: () -> Unit
 ) {
     var categoryMenuExpanded by remember { mutableStateOf(false) }
@@ -625,18 +676,36 @@ fun CarPartsTopBar(
                 modifier = Modifier.weight(1f)
             )
 
-            BadgedBox(
-                badge = {
-                    if (cartItemCount > 0) {
-                        Badge {
-                            Text(
-                                text = cartItemCount.toString(),
-                                fontSize = 10.sp
-                            )
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                BadgedBox(
+                    badge = {
+                        if (cartItemCount > 0) {
+                            Badge {
+                                Text(
+                                    text = cartItemCount.toString(),
+                                    fontSize = 10.sp
+                                )
+                            }
                         }
                     }
+                ) {
+                    IconButton(
+                        onClick = onOpenCart,
+                        modifier = Modifier
+                            .size(40.dp)
+                            .clip(CircleShape)
+                            .background(Color(0xFFDCEAF7))
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.ShoppingCart,
+                            contentDescription = "Open cart",
+                            tint = Color(0xFF1E3A8A)
+                        )
+                    }
                 }
-            ) {
+
+                Spacer(modifier = Modifier.size(8.dp))
+
                 IconButton(
                     onClick = onSignOut,
                     modifier = Modifier
@@ -651,6 +720,92 @@ fun CarPartsTopBar(
                     )
                 }
             }
+        }
+    }
+}
+
+@Composable
+fun CartScreen(
+    innerPadding: PaddingValues,
+    items: List<CartItem>,
+    onBackToParts: () -> Unit,
+    onCheckoutTest: () -> Unit,
+    onIncreaseItem: (String) -> Unit,
+    onDecreaseItem: (String) -> Unit
+) {
+    val subtotal = items.sumOf { item ->
+        val price = item.part.getFirstNonBlank("Price", "price")?.toDoubleOrNull() ?: 0.0
+        price * item.quantity
+    }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(innerPadding)
+            .padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        Text(
+            text = "Cart",
+            fontSize = 24.sp,
+            fontWeight = FontWeight.ExtraBold,
+            color = Color(0xFF1E3A8A)
+        )
+
+        if (items.isEmpty()) {
+            Text(text = "Your cart is empty (test).", color = Color(0xFF4B5563))
+        } else {
+            LazyColumn(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                items(items) { item ->
+                    val title = item.part.getFirstNonBlank("Name", "name", "title") ?: "Part"
+                    val key = item.part.basketKey()
+                    val priceText = item.part.getFirstNonBlank("Price", "price").toPriceLabel()
+
+                    Card(
+                        colors = CardDefaults.cardColors(containerColor = Color(0xFFF8FAFC)),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(12.dp),
+                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Text(title, fontWeight = FontWeight.SemiBold, color = Color(0xFF111827))
+                            Text("Price: $priceText", color = Color(0xFF374151))
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                TextButton(onClick = { onDecreaseItem(key) }) { Text("-") }
+                                Text("Qty: ${item.quantity}", color = Color(0xFF111827))
+                                TextButton(onClick = { onIncreaseItem(key) }) { Text("+") }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        HorizontalDivider(color = Color(0xFFD1D5DB))
+        Text(
+            text = "Subtotal (test): $${"%.2f".format(subtotal)}",
+            fontWeight = FontWeight.SemiBold,
+            color = Color(0xFF111827)
+        )
+        Button(
+            onClick = onCheckoutTest,
+            enabled = items.isNotEmpty(),
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text("Checkout (test)")
+        }
+        TextButton(onClick = onBackToParts, modifier = Modifier.fillMaxWidth()) {
+            Text("Back to Parts")
         }
     }
 }
