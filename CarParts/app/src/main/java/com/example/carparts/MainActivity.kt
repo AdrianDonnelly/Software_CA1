@@ -92,7 +92,10 @@ class MainActivity : ComponentActivity() {
                                 cartItemCount = basketCount,
                                 selectedCategory = selectedCategory,
                                 categories = availableCategories,
-                                onCategorySelected = { selectedCategory = it },
+                                onCategorySelected = {
+                                    selectedCategory = it
+                                    currentScreen = HomeScreen.PARTS
+                                },
                                 onOpenCart = { currentScreen = HomeScreen.CART },
                                 onSignOut = {
                                     scope.launch {
