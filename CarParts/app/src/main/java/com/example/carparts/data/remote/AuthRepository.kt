@@ -32,4 +32,21 @@ object AuthRepository {
     fun getCurrentUserEmail(): String? {
         return SupaBaseClient.client.auth.currentUserOrNull()?.email
     }
+
+    fun getCurrentUserProfile(): UserProfile? {
+        val user = SupaBaseClient.client.auth.currentUserOrNull() ?: return null
+        return UserProfile(
+            email = user.email,
+            id = user.id,
+            createdAt = user.createdAt.toString(),
+            lastSignInAt = user.lastSignInAt?.toString()
+        )
+    }
 }
+
+data class UserProfile(
+    val email: String?,
+    val id: String,
+    val createdAt: String,
+    val lastSignInAt: String?
+)

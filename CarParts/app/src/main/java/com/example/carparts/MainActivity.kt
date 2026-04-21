@@ -24,6 +24,7 @@ import com.example.carparts.ui.CarPartsTopBar
 import com.example.carparts.ui.CartScreen
 import com.example.carparts.ui.CategoryDrawer
 import com.example.carparts.ui.PartsScreen
+import com.example.carparts.ui.ProfileScreen
 import com.example.carparts.ui.admin.AdminScreen
 import com.example.carparts.ui.theme.CarPartsTheme
 import com.example.carparts.util.basketKey
@@ -62,18 +63,7 @@ class MainActivity : ComponentActivity() {
                                     onOpenCategoryDrawer = { isCategoryDrawerOpen = true },
                                     onOpenCart = { currentScreen = HomeScreen.CART },
                                     onOpenAdmin = { currentScreen = HomeScreen.ADMIN },
-                                    onSignOut = {
-                                        scope.launch {
-                                            AuthRepository.signOut()
-                                            isAuthenticated = false
-                                            isAdmin = false
-                                            selectedCategory = null
-                                            currentScreen = HomeScreen.PARTS
-                                            isCategoryDrawerOpen = false
-                                            basket.clear()
-                                            snackbarHostState.showSnackbar("Signed out")
-                                        }
-                                    }
+                                    onOpenProfile = { currentScreen = HomeScreen.PROFILE }
                                 )
                             }
                         },
@@ -91,6 +81,22 @@ class MainActivity : ComponentActivity() {
                             )
                         } else {
                             when (currentScreen) {
+                                HomeScreen.PROFILE -> ProfileScreen(
+                                    innerPadding = innerPadding,
+                                    isAdmin = isAdmin,
+                                    onSignOut = {
+                                        scope.launch {
+                                            AuthRepository.signOut()
+                                            isAuthenticated = false
+                                            isAdmin = false
+                                            selectedCategory = null
+                                            currentScreen = HomeScreen.PARTS
+                                            isCategoryDrawerOpen = false
+                                            basket.clear()
+                                            snackbarHostState.showSnackbar("Signed out")
+                                        }
+                                    }
+                                )
                                 HomeScreen.ADMIN -> AdminScreen(
                                     innerPadding = innerPadding,
                                     onBack = { currentScreen = HomeScreen.PARTS },
@@ -176,5 +182,6 @@ data class CartItem(
 internal enum class HomeScreen {
     PARTS,
     CART,
-    ADMIN
+    ADMIN,
+    PROFILE
 }

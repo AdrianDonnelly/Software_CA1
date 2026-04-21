@@ -36,7 +36,7 @@ fun CarPartsTopBar(
     onOpenCategoryDrawer: () -> Unit,
     onOpenCart: () -> Unit,
     onOpenAdmin: () -> Unit,
-    onSignOut: () -> Unit
+    onOpenProfile: () -> Unit
 ) {
     Surface(
         tonalElevation = 4.dp,
@@ -110,7 +110,7 @@ fun CarPartsTopBar(
                 Spacer(modifier = Modifier.size(8.dp))
 
                 IconButton(
-                    onClick = onSignOut,
+                    onClick = onOpenProfile,
                     modifier = Modifier
                         .size(40.dp)
                         .clip(CircleShape)
@@ -118,7 +118,7 @@ fun CarPartsTopBar(
                 ) {
                     Icon(
                         imageVector = Icons.Default.Person,
-                        contentDescription = "Sign out",
+                        contentDescription = "View profile",
                         tint = Color(0xFF1E3A8A)
                     )
                 }
