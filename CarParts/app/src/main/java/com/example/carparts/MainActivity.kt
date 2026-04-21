@@ -4,7 +4,11 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -24,6 +28,8 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material.icons.filled.Menu
@@ -90,109 +96,128 @@ class MainActivity : ComponentActivity() {
                 var selectedCategory by remember { mutableStateOf<String?>(null) }
                 var availableCategories by remember { mutableStateOf<List<String>>(emptyList()) }
                 var currentScreen by remember { mutableStateOf(HomeScreen.PARTS) }
+                var isCategoryDrawerOpen by remember { mutableStateOf(false) }
                 val basket = remember { mutableStateMapOf<String, CartItem>() }
                 val basketCount = basket.values.sumOf { it.quantity }
                 val snackbarHostState = remember { SnackbarHostState() }
                 val scope = rememberCoroutineScope()
 
-                Scaffold(
-                    modifier = Modifier.fillMaxSize(),
-                    topBar = {
-                        if (isAuthenticated) {
-                            CarPartsTopBar(
-                                cartItemCount = basketCount,
-                                selectedCategory = selectedCategory,
-                                categories = availableCategories,
-                                isAdmin = isAdmin,
-                                onCategorySelected = {
-                                    selectedCategory = it
-                                    currentScreen = HomeScreen.PARTS
-                                },
-                                onOpenCart = { currentScreen = HomeScreen.CART },
-                                onOpenAdmin = { currentScreen = HomeScreen.ADMIN },
-                                onSignOut = {
-                                    scope.launch {
-                                        AuthRepository.signOut()
-                                        isAuthenticated = false
-                                        isAdmin = false
-                                        selectedCategory = null
-                                        currentScreen = HomeScreen.PARTS
-                                        basket.clear()
-                                        snackbarHostState.showSnackbar("Signed out")
-                                    }
-                                }
-                            )
-                        }
-                    },
-                    snackbarHost = { SnackbarHost(hostState = snackbarHostState) }
-                ) { innerPadding ->
-                    if (!isAuthenticated) {
-                        AuthScreen(
-                            innerPadding = innerPadding,
-                            onAuthSuccess = { message ->
-                                isAuthenticated = true
-                                isAdmin = AuthRepository.getCurrentUserEmail()
-                                    .equals(ADMIN_EMAIL, ignoreCase = true)
-                                scope.launch {
-                                    snackbarHostState.showSnackbar(message)
-                                }
-                            }
-                        )
-                    } else {
-                        if (currentScreen == HomeScreen.ADMIN) {
-                            AdminScreen(
-                                innerPadding = innerPadding,
-                                onBack = { currentScreen = HomeScreen.PARTS },
-                                onMessage = { message ->
-                                    scope.launch { snackbarHostState.showSnackbar(message) }
-                                }
-                            )
-                        } else if (currentScreen == HomeScreen.CART) {
-                            CartScreen(
-                                innerPadding = innerPadding,
-                                items = basket.values.toList(),
-                                onBackToParts = { currentScreen = HomeScreen.PARTS },
-                                onCheckoutTest = {
-                                    scope.launch {
-                                        snackbarHostState.showSnackbar(
-                                            "Checkout (test) clicked. No DB stock updates yet."
-                                        )
-                                    }
-                                },
-                                onIncreaseItem = { key ->
-                                    basket[key]?.let { item ->
-                                        basket[key] = item.copy(quantity = item.quantity + 1)
-                                    }
-                                },
-                                onDecreaseItem = { key ->
-                                    basket[key]?.let { item ->
-                                        val updatedQuantity = item.quantity - 1
-                                        if (updatedQuantity <= 0) {
-                                            basket.remove(key)
-                                        } else {
-                                            basket[key] = item.copy(quantity = updatedQuantity)
+                Box(modifier = Modifier.fillMaxSize()) {
+                    Scaffold(
+                        modifier = Modifier.fillMaxSize(),
+                        topBar = {
+                            if (isAuthenticated) {
+                                CarPartsTopBar(
+                                    cartItemCount = basketCount,
+                                    selectedCategory = selectedCategory,
+                                    isAdmin = isAdmin,
+                                    onOpenCategoryDrawer = { isCategoryDrawerOpen = true },
+                                    onOpenCart = { currentScreen = HomeScreen.CART },
+                                    onOpenAdmin = { currentScreen = HomeScreen.ADMIN },
+                                    onSignOut = {
+                                        scope.launch {
+                                            AuthRepository.signOut()
+                                            isAuthenticated = false
+                                            isAdmin = false
+                                            selectedCategory = null
+                                            currentScreen = HomeScreen.PARTS
+                                            isCategoryDrawerOpen = false
+                                            basket.clear()
+                                            snackbarHostState.showSnackbar("Signed out")
                                         }
+                                    }
+                                )
+                            }
+                        },
+                        snackbarHost = { SnackbarHost(hostState = snackbarHostState) }
+                    ) { innerPadding ->
+                        if (!isAuthenticated) {
+                            AuthScreen(
+                                innerPadding = innerPadding,
+                                onAuthSuccess = { message ->
+                                    isAuthenticated = true
+                                    isAdmin = AuthRepository.getCurrentUserEmail()
+                                        .equals(ADMIN_EMAIL, ignoreCase = true)
+                                    scope.launch {
+                                        snackbarHostState.showSnackbar(message)
                                     }
                                 }
                             )
                         } else {
-                            PartsScreen(
-                                innerPadding = innerPadding,
+                            if (currentScreen == HomeScreen.ADMIN) {
+                                AdminScreen(
+                                    innerPadding = innerPadding,
+                                    onBack = { currentScreen = HomeScreen.PARTS },
+                                    onMessage = { message ->
+                                        scope.launch { snackbarHostState.showSnackbar(message) }
+                                    }
+                                )
+                            } else if (currentScreen == HomeScreen.CART) {
+                                CartScreen(
+                                    innerPadding = innerPadding,
+                                    items = basket.values.toList(),
+                                    onBackToParts = { currentScreen = HomeScreen.PARTS },
+                                    onCheckoutTest = {
+                                        scope.launch {
+                                            snackbarHostState.showSnackbar(
+                                                "Checkout (test) clicked. No DB stock updates yet."
+                                            )
+                                        }
+                                    },
+                                    onIncreaseItem = { key ->
+                                        basket[key]?.let { item ->
+                                            basket[key] = item.copy(quantity = item.quantity + 1)
+                                        }
+                                    },
+                                    onDecreaseItem = { key ->
+                                        basket[key]?.let { item ->
+                                            val updatedQuantity = item.quantity - 1
+                                            if (updatedQuantity <= 0) {
+                                                basket.remove(key)
+                                            } else {
+                                                basket[key] = item.copy(quantity = updatedQuantity)
+                                            }
+                                        }
+                                    }
+                                )
+                            } else {
+                                PartsScreen(
+                                    innerPadding = innerPadding,
+                                    selectedCategory = selectedCategory,
+                                    onCategoriesLoaded = { availableCategories = it },
+                                    onAddToBasket = { part ->
+                                        val key = part.basketKey()
+                                        val existing = basket[key]
+                                        basket[key] = if (existing == null) {
+                                            CartItem(part = part, quantity = 1)
+                                        } else {
+                                            existing.copy(quantity = existing.quantity + 1)
+                                        }
+                                        val title = part.getFirstNonBlank("Name", "name", "title") ?: "Part"
+                                        scope.launch {
+                                            snackbarHostState.showSnackbar("$title added to basket")
+                                        }
+                                    }
+                                )
+                            }
+                        }
+                    }
+
+                    if (isAuthenticated) {
+                        AnimatedVisibility(
+                            visible = isCategoryDrawerOpen,
+                            enter = slideInHorizontally(initialOffsetX = { -it }),
+                            exit = slideOutHorizontally(targetOffsetX = { -it })
+                        ) {
+                            CategoryDrawer(
+                                categories = availableCategories,
                                 selectedCategory = selectedCategory,
-                                onCategoriesLoaded = { availableCategories = it },
-                                onAddToBasket = { part ->
-                                    val key = part.basketKey()
-                                    val existing = basket[key]
-                                    basket[key] = if (existing == null) {
-                                        CartItem(part = part, quantity = 1)
-                                    } else {
-                                        existing.copy(quantity = existing.quantity + 1)
-                                    }
-                                    val title = part.getFirstNonBlank("Name", "name", "title") ?: "Part"
-                                    scope.launch {
-                                        snackbarHostState.showSnackbar("$title added to basket")
-                                    }
-                                }
+                                onCategorySelected = { cat ->
+                                    selectedCategory = cat
+                                    currentScreen = HomeScreen.PARTS
+                                    isCategoryDrawerOpen = false
+                                },
+                                onClose = { isCategoryDrawerOpen = false }
                             )
                         }
                     }
@@ -645,15 +670,12 @@ private fun Map<String, String>.getFirstNonBlank(vararg keys: String): String? {
 fun CarPartsTopBar(
     cartItemCount: Int,
     selectedCategory: String?,
-    categories: List<String>,
     isAdmin: Boolean,
-    onCategorySelected: (String?) -> Unit,
+    onOpenCategoryDrawer: () -> Unit,
     onOpenCart: () -> Unit,
     onOpenAdmin: () -> Unit,
     onSignOut: () -> Unit
 ) {
-    var categoryMenuExpanded by remember { mutableStateOf(false) }
-
     Surface(
         tonalElevation = 4.dp,
         shadowElevation = 4.dp,
@@ -665,36 +687,12 @@ fun CarPartsTopBar(
                 .padding(horizontal = 16.dp, vertical = 14.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Box {
-                IconButton(onClick = { categoryMenuExpanded = true }) {
-                    Icon(
-                        imageVector = Icons.Default.Menu,
-                        contentDescription = "Choose category",
-                        tint = Color(0xFF1E3A8A)
-                    )
-                }
-
-                DropdownMenu(
-                    expanded = categoryMenuExpanded,
-                    onDismissRequest = { categoryMenuExpanded = false }
-                ) {
-                    DropdownMenuItem(
-                        text = { Text("All parts") },
-                        onClick = {
-                            onCategorySelected(null)
-                            categoryMenuExpanded = false
-                        }
-                    )
-                    categories.forEach { category ->
-                        DropdownMenuItem(
-                            text = { Text(category) },
-                            onClick = {
-                                onCategorySelected(category)
-                                categoryMenuExpanded = false
-                            }
-                        )
-                    }
-                }
+            IconButton(onClick = onOpenCategoryDrawer) {
+                Icon(
+                    imageVector = Icons.Default.Menu,
+                    contentDescription = "Browse categories",
+                    tint = Color(0xFF1E3A8A)
+                )
             }
 
             Text(
@@ -1411,6 +1409,97 @@ private fun AdminDropdownField(
                 )
             }
         }
+    }
+}
+
+@Composable
+fun CategoryDrawer(
+    categories: List<String>,
+    selectedCategory: String?,
+    onCategorySelected: (String?) -> Unit,
+    onClose: () -> Unit
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.White)
+    ) {
+        Surface(
+            tonalElevation = 0.dp,
+            color = Color(0xFF1E3A8A)
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 8.dp, vertical = 12.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "Shop by Category",
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White,
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(start = 8.dp)
+                )
+                IconButton(onClick = onClose) {
+                    Icon(
+                        imageVector = Icons.Default.Close,
+                        contentDescription = "Close",
+                        tint = Color.White
+                    )
+                }
+            }
+        }
+
+        LazyColumn(modifier = Modifier.fillMaxSize()) {
+            item {
+                CategoryDrawerItem(
+                    label = "All Parts",
+                    isSelected = selectedCategory == null,
+                    onClick = { onCategorySelected(null) }
+                )
+                HorizontalDivider(color = Color(0xFFE5E7EB))
+            }
+            items(categories) { category ->
+                CategoryDrawerItem(
+                    label = category,
+                    isSelected = selectedCategory == category,
+                    onClick = { onCategorySelected(category) }
+                )
+                HorizontalDivider(color = Color(0xFFE5E7EB))
+            }
+        }
+    }
+}
+
+@Composable
+private fun CategoryDrawerItem(
+    label: String,
+    isSelected: Boolean,
+    onClick: () -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+            .background(if (isSelected) Color(0xFFEFF6FF) else Color.White)
+            .padding(horizontal = 20.dp, vertical = 18.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = label,
+            fontSize = 16.sp,
+            fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
+            color = if (isSelected) Color(0xFF1E3A8A) else Color(0xFF111827),
+            modifier = Modifier.weight(1f)
+        )
+        Icon(
+            imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+            contentDescription = null,
+            tint = if (isSelected) Color(0xFF1E3A8A) else Color(0xFF9CA3AF)
+        )
     }
 }
 
