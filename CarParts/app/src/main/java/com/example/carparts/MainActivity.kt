@@ -30,6 +30,9 @@ import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -40,6 +43,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.MenuAnchorType
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -852,6 +856,7 @@ fun CartScreen(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AdminScreen(
     innerPadding: PaddingValues,
@@ -872,7 +877,30 @@ fun AdminScreen(
     var isLoading by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
 
+    var categoryOptions by remember { mutableStateOf<List<String>>(emptyList()) }
+    var manufacturerOptions by remember { mutableStateOf<List<String>>(emptyList()) }
+    var conditionOptions by remember { mutableStateOf<List<String>>(emptyList()) }
+    var existingPartNumbers by remember { mutableStateOf<Set<String>>(emptySet()) }
+
     val scope = rememberCoroutineScope()
+
+    LaunchedEffect(Unit) {
+        SupaBaseClient.fetchParts().onSuccess { parts ->
+            categoryOptions = parts
+                .mapNotNull { it.getFirstNonBlank("Category", "category") }
+                .filter { it.isNotBlank() }.distinct().sorted()
+            manufacturerOptions = parts
+                .mapNotNull { it.getFirstNonBlank("Manufacturer", "manufacturer") }
+                .filter { it.isNotBlank() }.distinct().sorted()
+            conditionOptions = parts
+                .mapNotNull { it.getFirstNonBlank("Condition", "condition") }
+                .filter { it.isNotBlank() }.distinct().sorted()
+            existingPartNumbers = parts
+                .mapNotNull { it.getFirstNonBlank("PartNumber", "part_number", "sku") }
+                .filter { it.isNotBlank() }
+                .toSet()
+        }
+    }
 
     Column(
         modifier = Modifier
@@ -914,26 +942,23 @@ fun AdminScreen(
             singleLine = true,
             modifier = Modifier.fillMaxWidth()
         )
-        TextField(
+        AdminDropdownField(
+            label = "Manufacturer",
             value = manufacturer,
             onValueChange = { manufacturer = it },
-            label = { Text("Manufacturer") },
-            singleLine = true,
-            modifier = Modifier.fillMaxWidth()
+            options = manufacturerOptions
         )
-        TextField(
+        AdminDropdownField(
+            label = "Category",
             value = category,
             onValueChange = { category = it },
-            label = { Text("Category") },
-            singleLine = true,
-            modifier = Modifier.fillMaxWidth()
+            options = categoryOptions
         )
-        TextField(
+        AdminDropdownField(
+            label = "Condition",
             value = condition,
             onValueChange = { condition = it },
-            label = { Text("Condition") },
-            singleLine = true,
-            modifier = Modifier.fillMaxWidth()
+            options = conditionOptions
         )
         TextField(
             value = stockQuantity,
@@ -974,6 +999,13 @@ fun AdminScreen(
                     errorMessage = "Name is required."
                     return@Button
                 }
+                val trimmedPartNumber = partNumber.trim()
+                if (trimmedPartNumber.isNotBlank() &&
+                    existingPartNumbers.any { it.equals(trimmedPartNumber, ignoreCase = true) }
+                ) {
+                    errorMessage = "Part Number \"$trimmedPartNumber\" already exists. Use a unique SKU."
+                    return@Button
+                }
                 isLoading = true
                 scope.launch {
                     val partData = buildMap {
@@ -991,6 +1023,9 @@ fun AdminScreen(
                     SupaBaseClient.insertPart(partData)
                         .onSuccess {
                             onPartAdded("Part \"${name.trim()}\" added successfully.")
+                            if (trimmedPartNumber.isNotBlank()) {
+                                existingPartNumbers = existingPartNumbers + trimmedPartNumber
+                            }
                             name = ""; price = ""; partNumber = ""; manufacturer = ""
                             category = ""; condition = ""; stockQuantity = ""
                             description = ""; imageUrl = ""; vehicleId = ""
@@ -1010,6 +1045,52 @@ fun AdminScreen(
         }
 
         Spacer(modifier = Modifier.height(16.dp))
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun AdminDropdownField(
+    label: String,
+    value: String,
+    onValueChange: (String) -> Unit,
+    options: List<String>
+) {
+    var expanded by remember { mutableStateOf(false) }
+    ExposedDropdownMenuBox(
+        expanded = expanded && options.isNotEmpty(),
+        onExpandedChange = { if (options.isNotEmpty()) expanded = it },
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        TextField(
+            value = value,
+            onValueChange = { onValueChange(it); expanded = false },
+            label = { Text(label) },
+            trailingIcon = {
+                if (options.isNotEmpty()) {
+                    ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
+                }
+            },
+            singleLine = true,
+            modifier = Modifier
+                .fillMaxWidth()
+                .menuAnchor(MenuAnchorType.PrimaryEditable)
+        )
+        ExposedDropdownMenu(
+            expanded = expanded && options.isNotEmpty(),
+            onDismissRequest = { expanded = false }
+        ) {
+            options.forEach { option ->
+                DropdownMenuItem(
+                    text = { Text(option) },
+                    onClick = {
+                        onValueChange(option)
+                        expanded = false
+                    },
+                    contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding
+                )
+            }
+        }
     }
 }
 
