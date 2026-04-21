@@ -23,6 +23,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material.icons.filled.Menu
@@ -902,12 +903,21 @@ private fun AdminMenuContent(
     ) {
         Spacer(modifier = Modifier.height(4.dp))
 
-        Text(
-            text = "Admin Panel",
-            fontSize = 22.sp,
-            fontWeight = FontWeight.ExtraBold,
-            color = Color(0xFF1E3A8A)
-        )
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            IconButton(onClick = onBack) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = "Back",
+                    tint = Color(0xFF1E3A8A)
+                )
+            }
+            Text(
+                text = "Admin Panel",
+                fontSize = 22.sp,
+                fontWeight = FontWeight.ExtraBold,
+                color = Color(0xFF1E3A8A)
+            )
+        }
 
         HorizontalDivider(color = Color(0xFFD1D5DB))
 
@@ -1020,12 +1030,21 @@ private fun AdminAddPartContent(
     ) {
         Spacer(modifier = Modifier.height(4.dp))
 
-        Text(
-            text = "Add Part",
-            fontSize = 22.sp,
-            fontWeight = FontWeight.ExtraBold,
-            color = Color(0xFF1E3A8A)
-        )
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            IconButton(onClick = onBack) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = "Back",
+                    tint = Color(0xFF1E3A8A)
+                )
+            }
+            Text(
+                text = "Add Part",
+                fontSize = 22.sp,
+                fontWeight = FontWeight.ExtraBold,
+                color = Color(0xFF1E3A8A)
+            )
+        }
 
         HorizontalDivider(color = Color(0xFFD1D5DB))
 
@@ -1198,12 +1217,21 @@ private fun AdminAddVehicleContent(
     ) {
         Spacer(modifier = Modifier.height(4.dp))
 
-        Text(
-            text = "Add Vehicle",
-            fontSize = 22.sp,
-            fontWeight = FontWeight.ExtraBold,
-            color = Color(0xFF1E3A8A)
-        )
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            IconButton(onClick = onBack) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = "Back",
+                    tint = Color(0xFF1E3A8A)
+                )
+            }
+            Text(
+                text = "Add Vehicle",
+                fontSize = 22.sp,
+                fontWeight = FontWeight.ExtraBold,
+                color = Color(0xFF1E3A8A)
+            )
+        }
 
         HorizontalDivider(color = Color(0xFFD1D5DB))
 
