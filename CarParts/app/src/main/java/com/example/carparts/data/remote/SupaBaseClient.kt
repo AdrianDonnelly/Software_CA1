@@ -46,6 +46,37 @@ object SupaBaseClient {
         }
     }
 
+    suspend fun fetchVehicles(): Result<List<Map<String, String>>> {
+        return try {
+            val responseData = client.from("Vehicles").select().data
+            val jsonArray = Json.parseToJsonElement(responseData) as? JsonArray ?: JsonArray(emptyList())
+            val rows = jsonArray.mapNotNull { item ->
+                val row = item as? JsonObject ?: return@mapNotNull null
+                row.mapValues { (_, value) ->
+                    when (value) {
+                        is JsonPrimitive -> value.contentOrNull ?: value.toString()
+                        else -> value.toString()
+                    }
+                }
+            }
+            Result.success(rows)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun insertVehicle(vehicleData: Map<String, String>): Result<Unit> {
+        return try {
+            val json = buildJsonObject {
+                vehicleData.forEach { (k, v) -> if (v.isNotBlank()) put(k, v) }
+            }
+            client.from("Vehicles").insert(json)
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
     suspend fun insertPart(partData: Map<String, String>): Result<Unit> {
         return try {
             val json = buildJsonObject {

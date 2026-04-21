@@ -142,7 +142,7 @@ class MainActivity : ComponentActivity() {
                             AdminScreen(
                                 innerPadding = innerPadding,
                                 onBack = { currentScreen = HomeScreen.PARTS },
-                                onPartAdded = { message ->
+                                onMessage = { message ->
                                     scope.launch { snackbarHostState.showSnackbar(message) }
                                 }
                             )
@@ -856,9 +856,98 @@ fun CartScreen(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+private enum class AdminView { MENU, ADD_PART, ADD_VEHICLE }
+
 @Composable
 fun AdminScreen(
+    innerPadding: PaddingValues,
+    onBack: () -> Unit,
+    onMessage: (String) -> Unit
+) {
+    var adminView by remember { mutableStateOf(AdminView.MENU) }
+
+    when (adminView) {
+        AdminView.MENU -> AdminMenuContent(
+            innerPadding = innerPadding,
+            onBack = onBack,
+            onAddPart = { adminView = AdminView.ADD_PART },
+            onAddVehicle = { adminView = AdminView.ADD_VEHICLE }
+        )
+        AdminView.ADD_PART -> AdminAddPartContent(
+            innerPadding = innerPadding,
+            onBack = { adminView = AdminView.MENU },
+            onPartAdded = onMessage
+        )
+        AdminView.ADD_VEHICLE -> AdminAddVehicleContent(
+            innerPadding = innerPadding,
+            onBack = { adminView = AdminView.MENU },
+            onVehicleAdded = onMessage
+        )
+    }
+}
+
+@Composable
+private fun AdminMenuContent(
+    innerPadding: PaddingValues,
+    onBack: () -> Unit,
+    onAddPart: () -> Unit,
+    onAddVehicle: () -> Unit
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(innerPadding)
+            .padding(horizontal = 16.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        Spacer(modifier = Modifier.height(4.dp))
+
+        Text(
+            text = "Admin Panel",
+            fontSize = 22.sp,
+            fontWeight = FontWeight.ExtraBold,
+            color = Color(0xFF1E3A8A)
+        )
+
+        HorizontalDivider(color = Color(0xFFD1D5DB))
+
+        Card(
+            onClick = onAddPart,
+            modifier = Modifier.fillMaxWidth(),
+            colors = CardDefaults.cardColors(containerColor = Color(0xFFF8FAFC)),
+            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        ) {
+            Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Text("Add Part", fontWeight = FontWeight.Bold, fontSize = 18.sp, color = Color(0xFF111827))
+                Text("Add a new car part to the catalogue", color = Color(0xFF4B5563))
+            }
+        }
+
+        Card(
+            onClick = onAddVehicle,
+            modifier = Modifier.fillMaxWidth(),
+            colors = CardDefaults.cardColors(containerColor = Color(0xFFF8FAFC)),
+            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        ) {
+            Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Text("Add Vehicle", fontWeight = FontWeight.Bold, fontSize = 18.sp, color = Color(0xFF111827))
+                Text("Add a new vehicle make and model", color = Color(0xFF4B5563))
+            }
+        }
+
+        Spacer(modifier = Modifier.weight(1f))
+
+        TextButton(onClick = onBack, modifier = Modifier.fillMaxWidth()) {
+            Text("Back to Parts")
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun AdminAddPartContent(
     innerPadding: PaddingValues,
     onBack: () -> Unit,
     onPartAdded: (String) -> Unit
@@ -882,6 +971,10 @@ fun AdminScreen(
     var conditionOptions by remember { mutableStateOf<List<String>>(emptyList()) }
     var existingPartNumbers by remember { mutableStateOf<Set<String>>(emptySet()) }
 
+    var vehicles by remember { mutableStateOf<List<Map<String, String>>>(emptyList()) }
+    var selectedMake by remember { mutableStateOf("") }
+    var selectedModelDisplay by remember { mutableStateOf("") }
+
     val scope = rememberCoroutineScope()
 
     LaunchedEffect(Unit) {
@@ -900,7 +993,22 @@ fun AdminScreen(
                 .filter { it.isNotBlank() }
                 .toSet()
         }
+        SupaBaseClient.fetchVehicles().onSuccess { vehicles = it }
     }
+
+    val makeOptions = vehicles
+        .mapNotNull { it.getFirstNonBlank("Make", "make") }
+        .filter { it.isNotBlank() }.distinct().sorted()
+
+    val modelOptions = vehicles
+        .filter { it.getFirstNonBlank("Make", "make").equals(selectedMake, ignoreCase = true) }
+        .mapNotNull { v ->
+            val id = v.getFirstNonBlank("VehicleId", "vehicleid") ?: return@mapNotNull null
+            val model = v.getFirstNonBlank("Model", "model") ?: ""
+            val year = v.getFirstNonBlank("Year", "year") ?: ""
+            val display = if (year.isNotBlank()) "$model ($year)" else model
+            Pair(display, id)
+        }
 
     Column(
         modifier = Modifier
@@ -913,7 +1021,7 @@ fun AdminScreen(
         Spacer(modifier = Modifier.height(4.dp))
 
         Text(
-            text = "Admin — Add Part",
+            text = "Add Part",
             fontSize = 22.sp,
             fontWeight = FontWeight.ExtraBold,
             color = Color(0xFF1E3A8A)
@@ -974,12 +1082,25 @@ fun AdminScreen(
             singleLine = true,
             modifier = Modifier.fillMaxWidth()
         )
-        TextField(
-            value = vehicleId,
-            onValueChange = { vehicleId = it },
-            label = { Text("Vehicle ID") },
-            singleLine = true,
-            modifier = Modifier.fillMaxWidth()
+        AdminDropdownField(
+            label = "Vehicle Make",
+            value = selectedMake,
+            onValueChange = {
+                selectedMake = it
+                selectedModelDisplay = ""
+                vehicleId = ""
+            },
+            options = makeOptions
+        )
+        AdminLabeledDropdownField(
+            label = "Vehicle Model",
+            displayValue = selectedModelDisplay,
+            onValueChange = { display, id ->
+                selectedModelDisplay = display
+                vehicleId = id
+            },
+            options = modelOptions,
+            enabled = selectedMake.isNotBlank() && modelOptions.isNotEmpty()
         )
         TextField(
             value = description,
@@ -1028,7 +1149,8 @@ fun AdminScreen(
                             }
                             name = ""; price = ""; partNumber = ""; manufacturer = ""
                             category = ""; condition = ""; stockQuantity = ""
-                            description = ""; imageUrl = ""; vehicleId = ""
+                            description = ""; imageUrl = ""
+                            vehicleId = ""; selectedMake = ""; selectedModelDisplay = ""
                         }
                         .onFailure { errorMessage = it.message ?: "Failed to add part." }
                     isLoading = false
@@ -1041,10 +1163,180 @@ fun AdminScreen(
         }
 
         TextButton(onClick = onBack, modifier = Modifier.fillMaxWidth()) {
-            Text("Back to Parts")
+            Text("Back")
         }
 
         Spacer(modifier = Modifier.height(16.dp))
+    }
+}
+
+@Composable
+private fun AdminAddVehicleContent(
+    innerPadding: PaddingValues,
+    onBack: () -> Unit,
+    onVehicleAdded: (String) -> Unit
+) {
+    var make by remember { mutableStateOf("") }
+    var model by remember { mutableStateOf("") }
+    var year by remember { mutableStateOf("") }
+    var engineType by remember { mutableStateOf("") }
+    var category by remember { mutableStateOf("") }
+    var imageUrl by remember { mutableStateOf("") }
+
+    var isLoading by remember { mutableStateOf(false) }
+    var errorMessage by remember { mutableStateOf<String?>(null) }
+
+    val scope = rememberCoroutineScope()
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(innerPadding)
+            .padding(horizontal = 16.dp)
+            .verticalScroll(rememberScrollState()),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        Spacer(modifier = Modifier.height(4.dp))
+
+        Text(
+            text = "Add Vehicle",
+            fontSize = 22.sp,
+            fontWeight = FontWeight.ExtraBold,
+            color = Color(0xFF1E3A8A)
+        )
+
+        HorizontalDivider(color = Color(0xFFD1D5DB))
+
+        TextField(
+            value = make,
+            onValueChange = { make = it; errorMessage = null },
+            label = { Text("Make *") },
+            singleLine = true,
+            modifier = Modifier.fillMaxWidth()
+        )
+        TextField(
+            value = model,
+            onValueChange = { model = it; errorMessage = null },
+            label = { Text("Model *") },
+            singleLine = true,
+            modifier = Modifier.fillMaxWidth()
+        )
+        TextField(
+            value = year,
+            onValueChange = { year = it },
+            label = { Text("Year") },
+            singleLine = true,
+            modifier = Modifier.fillMaxWidth()
+        )
+        TextField(
+            value = engineType,
+            onValueChange = { engineType = it },
+            label = { Text("Engine Type") },
+            singleLine = true,
+            modifier = Modifier.fillMaxWidth()
+        )
+        TextField(
+            value = category,
+            onValueChange = { category = it },
+            label = { Text("Category") },
+            singleLine = true,
+            modifier = Modifier.fillMaxWidth()
+        )
+        TextField(
+            value = imageUrl,
+            onValueChange = { imageUrl = it },
+            label = { Text("Image URL") },
+            singleLine = true,
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        if (errorMessage != null) {
+            Text(text = errorMessage ?: "", color = Color(0xFFB91C1C))
+        }
+
+        Button(
+            onClick = {
+                if (make.isBlank() || model.isBlank()) {
+                    errorMessage = "Make and Model are required."
+                    return@Button
+                }
+                isLoading = true
+                scope.launch {
+                    val vehicleData = buildMap {
+                        put("Make", make.trim())
+                        put("Model", model.trim())
+                        put("Year", year.trim())
+                        put("EngineType", engineType.trim())
+                        put("Category", category.trim())
+                        put("ImageUrl", imageUrl.trim())
+                    }
+                    SupaBaseClient.insertVehicle(vehicleData)
+                        .onSuccess {
+                            onVehicleAdded("Vehicle \"${make.trim()} ${model.trim()}\" added successfully.")
+                            make = ""; model = ""; year = ""; engineType = ""; category = ""; imageUrl = ""
+                        }
+                        .onFailure { errorMessage = it.message ?: "Failed to add vehicle." }
+                    isLoading = false
+                }
+            },
+            enabled = !isLoading,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text(if (isLoading) "Adding..." else "Add Vehicle")
+        }
+
+        TextButton(onClick = onBack, modifier = Modifier.fillMaxWidth()) {
+            Text("Back")
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun AdminLabeledDropdownField(
+    label: String,
+    displayValue: String,
+    onValueChange: (display: String, id: String) -> Unit,
+    options: List<Pair<String, String>>,
+    enabled: Boolean = true
+) {
+    var expanded by remember { mutableStateOf(false) }
+    ExposedDropdownMenuBox(
+        expanded = expanded && enabled,
+        onExpandedChange = { if (enabled) expanded = it },
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        TextField(
+            value = displayValue,
+            onValueChange = {},
+            readOnly = true,
+            enabled = enabled,
+            label = { Text(label) },
+            trailingIcon = {
+                if (enabled) ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
+            },
+            singleLine = true,
+            modifier = Modifier
+                .fillMaxWidth()
+                .menuAnchor(MenuAnchorType.PrimaryNotEditable)
+        )
+        ExposedDropdownMenu(
+            expanded = expanded && enabled,
+            onDismissRequest = { expanded = false }
+        ) {
+            options.forEach { (display, id) ->
+                DropdownMenuItem(
+                    text = { Text(display) },
+                    onClick = {
+                        onValueChange(display, id)
+                        expanded = false
+                    },
+                    contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding
+                )
+            }
+        }
     }
 }
 
