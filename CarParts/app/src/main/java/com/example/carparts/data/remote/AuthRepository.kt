@@ -28,4 +28,8 @@ object AuthRepository {
             SupaBaseClient.client.auth.signOut()
         }
     }
+
+    fun getCurrentUserEmail(): String? {
+        return SupaBaseClient.client.auth.currentUserOrNull()?.email
+    }
 }

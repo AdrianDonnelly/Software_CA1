@@ -20,7 +20,10 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Person
@@ -68,6 +71,8 @@ import com.example.carparts.data.remote.SupaBaseClient
 import com.example.carparts.ui.theme.CarPartsTheme
 import kotlinx.coroutines.launch
 
+private const val ADMIN_EMAIL = "admin@carparts.com"
+
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -76,6 +81,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             CarPartsTheme {
                 var isAuthenticated by remember { mutableStateOf(false) }
+                var isAdmin by remember { mutableStateOf(false) }
                 var selectedCategory by remember { mutableStateOf<String?>(null) }
                 var availableCategories by remember { mutableStateOf<List<String>>(emptyList()) }
                 var currentScreen by remember { mutableStateOf(HomeScreen.PARTS) }
@@ -92,15 +98,18 @@ class MainActivity : ComponentActivity() {
                                 cartItemCount = basketCount,
                                 selectedCategory = selectedCategory,
                                 categories = availableCategories,
+                                isAdmin = isAdmin,
                                 onCategorySelected = {
                                     selectedCategory = it
                                     currentScreen = HomeScreen.PARTS
                                 },
                                 onOpenCart = { currentScreen = HomeScreen.CART },
+                                onOpenAdmin = { currentScreen = HomeScreen.ADMIN },
                                 onSignOut = {
                                     scope.launch {
                                         AuthRepository.signOut()
                                         isAuthenticated = false
+                                        isAdmin = false
                                         selectedCategory = null
                                         currentScreen = HomeScreen.PARTS
                                         basket.clear()
@@ -117,13 +126,23 @@ class MainActivity : ComponentActivity() {
                             innerPadding = innerPadding,
                             onAuthSuccess = { message ->
                                 isAuthenticated = true
+                                isAdmin = AuthRepository.getCurrentUserEmail()
+                                    .equals(ADMIN_EMAIL, ignoreCase = true)
                                 scope.launch {
                                     snackbarHostState.showSnackbar(message)
                                 }
                             }
                         )
                     } else {
-                        if (currentScreen == HomeScreen.CART) {
+                        if (currentScreen == HomeScreen.ADMIN) {
+                            AdminScreen(
+                                innerPadding = innerPadding,
+                                onBack = { currentScreen = HomeScreen.PARTS },
+                                onPartAdded = { message ->
+                                    scope.launch { snackbarHostState.showSnackbar(message) }
+                                }
+                            )
+                        } else if (currentScreen == HomeScreen.CART) {
                             CartScreen(
                                 innerPadding = innerPadding,
                                 items = basket.values.toList(),
@@ -185,7 +204,8 @@ data class CartItem(
 
 private enum class HomeScreen {
     PARTS,
-    CART
+    CART,
+    ADMIN
 }
 
 @Composable
@@ -621,8 +641,10 @@ fun CarPartsTopBar(
     cartItemCount: Int,
     selectedCategory: String?,
     categories: List<String>,
+    isAdmin: Boolean,
     onCategorySelected: (String?) -> Unit,
     onOpenCart: () -> Unit,
+    onOpenAdmin: () -> Unit,
     onSignOut: () -> Unit
 ) {
     var categoryMenuExpanded by remember { mutableStateOf(false) }
@@ -702,6 +724,23 @@ fun CarPartsTopBar(
                         Icon(
                             imageVector = Icons.Default.ShoppingCart,
                             contentDescription = "Open cart",
+                            tint = Color(0xFF1E3A8A)
+                        )
+                    }
+                }
+
+                if (isAdmin) {
+                    Spacer(modifier = Modifier.size(8.dp))
+                    IconButton(
+                        onClick = onOpenAdmin,
+                        modifier = Modifier
+                            .size(40.dp)
+                            .clip(CircleShape)
+                            .background(Color(0xFFDCEAF7))
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Settings,
+                            contentDescription = "Admin panel",
                             tint = Color(0xFF1E3A8A)
                         )
                     }
@@ -810,6 +849,167 @@ fun CartScreen(
         TextButton(onClick = onBackToParts, modifier = Modifier.fillMaxWidth()) {
             Text("Back to Parts")
         }
+    }
+}
+
+@Composable
+fun AdminScreen(
+    innerPadding: PaddingValues,
+    onBack: () -> Unit,
+    onPartAdded: (String) -> Unit
+) {
+    var name by remember { mutableStateOf("") }
+    var price by remember { mutableStateOf("") }
+    var partNumber by remember { mutableStateOf("") }
+    var manufacturer by remember { mutableStateOf("") }
+    var category by remember { mutableStateOf("") }
+    var condition by remember { mutableStateOf("") }
+    var stockQuantity by remember { mutableStateOf("") }
+    var description by remember { mutableStateOf("") }
+    var imageUrl by remember { mutableStateOf("") }
+    var vehicleId by remember { mutableStateOf("") }
+
+    var isLoading by remember { mutableStateOf(false) }
+    var errorMessage by remember { mutableStateOf<String?>(null) }
+
+    val scope = rememberCoroutineScope()
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(innerPadding)
+            .padding(horizontal = 16.dp)
+            .verticalScroll(rememberScrollState()),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        Spacer(modifier = Modifier.height(4.dp))
+
+        Text(
+            text = "Admin — Add Part",
+            fontSize = 22.sp,
+            fontWeight = FontWeight.ExtraBold,
+            color = Color(0xFF1E3A8A)
+        )
+
+        HorizontalDivider(color = Color(0xFFD1D5DB))
+
+        TextField(
+            value = name,
+            onValueChange = { name = it; errorMessage = null },
+            label = { Text("Name *") },
+            singleLine = true,
+            modifier = Modifier.fillMaxWidth()
+        )
+        TextField(
+            value = price,
+            onValueChange = { price = it; errorMessage = null },
+            label = { Text("Price") },
+            singleLine = true,
+            modifier = Modifier.fillMaxWidth()
+        )
+        TextField(
+            value = partNumber,
+            onValueChange = { partNumber = it },
+            label = { Text("Part Number / SKU") },
+            singleLine = true,
+            modifier = Modifier.fillMaxWidth()
+        )
+        TextField(
+            value = manufacturer,
+            onValueChange = { manufacturer = it },
+            label = { Text("Manufacturer") },
+            singleLine = true,
+            modifier = Modifier.fillMaxWidth()
+        )
+        TextField(
+            value = category,
+            onValueChange = { category = it },
+            label = { Text("Category") },
+            singleLine = true,
+            modifier = Modifier.fillMaxWidth()
+        )
+        TextField(
+            value = condition,
+            onValueChange = { condition = it },
+            label = { Text("Condition") },
+            singleLine = true,
+            modifier = Modifier.fillMaxWidth()
+        )
+        TextField(
+            value = stockQuantity,
+            onValueChange = { stockQuantity = it },
+            label = { Text("Stock Quantity") },
+            singleLine = true,
+            modifier = Modifier.fillMaxWidth()
+        )
+        TextField(
+            value = imageUrl,
+            onValueChange = { imageUrl = it },
+            label = { Text("Image URL") },
+            singleLine = true,
+            modifier = Modifier.fillMaxWidth()
+        )
+        TextField(
+            value = vehicleId,
+            onValueChange = { vehicleId = it },
+            label = { Text("Vehicle ID") },
+            singleLine = true,
+            modifier = Modifier.fillMaxWidth()
+        )
+        TextField(
+            value = description,
+            onValueChange = { description = it },
+            label = { Text("Description") },
+            minLines = 3,
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        if (errorMessage != null) {
+            Text(text = errorMessage ?: "", color = Color(0xFFB91C1C))
+        }
+
+        Button(
+            onClick = {
+                if (name.isBlank()) {
+                    errorMessage = "Name is required."
+                    return@Button
+                }
+                isLoading = true
+                scope.launch {
+                    val partData = buildMap {
+                        put("Name", name.trim())
+                        put("Price", price.trim())
+                        put("PartNumber", partNumber.trim())
+                        put("Manufacturer", manufacturer.trim())
+                        put("Category", category.trim())
+                        put("Condition", condition.trim())
+                        put("StockQuantity", stockQuantity.trim())
+                        put("Description", description.trim())
+                        put("ImageUrl", imageUrl.trim())
+                        put("VehicleId", vehicleId.trim())
+                    }
+                    SupaBaseClient.insertPart(partData)
+                        .onSuccess {
+                            onPartAdded("Part \"${name.trim()}\" added successfully.")
+                            name = ""; price = ""; partNumber = ""; manufacturer = ""
+                            category = ""; condition = ""; stockQuantity = ""
+                            description = ""; imageUrl = ""; vehicleId = ""
+                        }
+                        .onFailure { errorMessage = it.message ?: "Failed to add part." }
+                    isLoading = false
+                }
+            },
+            enabled = !isLoading,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text(if (isLoading) "Adding..." else "Add Part")
+        }
+
+        TextButton(onClick = onBack, modifier = Modifier.fillMaxWidth()) {
+            Text("Back to Parts")
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
     }
 }
 

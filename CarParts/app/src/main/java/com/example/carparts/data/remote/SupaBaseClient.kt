@@ -11,7 +11,9 @@ import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.contentOrNull
+import kotlinx.serialization.json.put
 
 object SupaBaseClient {
 
@@ -41,6 +43,18 @@ object SupaBaseClient {
             Log.d("SUPABASE", "SUCCESS: $result")
         } catch (e: Exception) {
             Log.e("SUPABASE", "ERROR: ${e.message}", e)
+        }
+    }
+
+    suspend fun insertPart(partData: Map<String, String>): Result<Unit> {
+        return try {
+            val json = buildJsonObject {
+                partData.forEach { (k, v) -> if (v.isNotBlank()) put(k, v) }
+            }
+            client.from("AutoParts").insert(json)
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
         }
     }
 
