@@ -33,11 +33,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
+import com.example.carparts.R
 import com.example.carparts.data.remote.ApiClient
 import com.example.carparts.util.SelectedVehicle
 import com.example.carparts.util.getFirstNonBlank
@@ -45,7 +47,6 @@ import com.example.carparts.util.matchesCategory
 import com.example.carparts.util.readCategoryName
 import com.example.carparts.util.readStockQuantity
 import com.example.carparts.util.toPriceLabel
-import com.example.carparts.util.toStockLabel
 
 @Composable
 fun PartsScreen(
@@ -68,20 +69,14 @@ fun PartsScreen(
     LaunchedEffect(Unit) {
         isLoading = true
         errorMessage = null
-
         ApiClient.fetchParts()
             .onSuccess { fetchedParts ->
                 parts = fetchedParts.shuffled()
                 onCategoriesLoaded(
-                    fetchedParts.mapNotNull { it.readCategoryName() }
-                        .distinct()
-                        .sorted()
+                    fetchedParts.mapNotNull { it.readCategoryName() }.distinct().sorted()
                 )
             }
-            .onFailure { error ->
-                errorMessage = error.message ?: "Failed to load parts from Supabase."
-            }
-
+            .onFailure { errorMessage = it.message ?: "Failed to load parts." }
         isLoading = false
     }
 
@@ -97,34 +92,19 @@ fun PartsScreen(
         }
 
     when {
-        isLoading -> {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(innerPadding),
-                contentAlignment = Alignment.Center
-            ) {
-                CircularProgressIndicator()
-            }
-        }
+        isLoading -> Box(
+            modifier = Modifier.fillMaxSize().padding(innerPadding),
+            contentAlignment = Alignment.Center
+        ) { CircularProgressIndicator() }
 
-        errorMessage != null -> {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(innerPadding)
-                    .padding(16.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(text = errorMessage ?: "Something went wrong.", color = Color(0xFFB91C1C))
-            }
-        }
+        errorMessage != null -> Box(
+            modifier = Modifier.fillMaxSize().padding(innerPadding).padding(16.dp),
+            contentAlignment = Alignment.Center
+        ) { Text(text = errorMessage ?: "", color = Color(0xFFB91C1C)) }
 
         else -> {
             LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(innerPadding),
+                modifier = Modifier.fillMaxSize().padding(innerPadding),
                 contentPadding = PaddingValues(16.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
@@ -141,9 +121,9 @@ fun PartsScreen(
                 item {
                     val heading = when {
                         filterByVehicle && selectedVehicle != null ->
-                            "Parts for ${selectedVehicle.displayName}"
+                            stringResource(R.string.heading_parts_for_vehicle, selectedVehicle.displayName)
                         !selectedCategory.isNullOrBlank() -> selectedCategory
-                        else -> "All Parts"
+                        else -> stringResource(R.string.all_parts)
                     }
                     Text(
                         text = heading,
@@ -158,29 +138,26 @@ fun PartsScreen(
                 if (visibleParts.isEmpty()) {
                     item {
                         Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 32.dp),
+                            modifier = Modifier.fillMaxWidth().padding(vertical = 32.dp),
                             contentAlignment = Alignment.Center
                         ) {
                             val message = when {
                                 filterByVehicle && selectedVehicle != null ->
-                                    "No parts found for ${selectedVehicle.displayName}."
+                                    stringResource(R.string.no_parts_for_vehicle, selectedVehicle.displayName)
                                 !selectedCategory.isNullOrBlank() ->
-                                    "No parts found in \"$selectedCategory\"."
-                                else -> "No parts found in your Supabase table."
+                                    stringResource(R.string.no_parts_in_category, selectedCategory)
+                                else -> stringResource(R.string.no_parts_found)
                             }
                             Text(text = message, color = Color(0xFF6B7280))
                         }
                     }
                 } else {
                     items(visibleParts) { part ->
-                        val stockQuantity = part.readStockQuantity()
                         PartRow(
                             part = part,
                             onClick = { selectedPart = part },
                             onAddToBasket = { onAddToBasket(part) },
-                            canAddToBasket = stockQuantity > 0
+                            canAddToBasket = part.readStockQuantity() > 0
                         )
                     }
                 }
@@ -189,12 +166,11 @@ fun PartsScreen(
     }
 
     selectedPart?.let { part ->
-        val stockQuantity = part.readStockQuantity()
         PartDetailsDialog(
             part = part,
             onDismiss = { selectedPart = null },
             onAddToBasket = { onAddToBasket(part) },
-            canAddToBasket = stockQuantity > 0
+            canAddToBasket = part.readStockQuantity() > 0
         )
     }
 }
@@ -213,15 +189,13 @@ private fun VehicleBanner(
         modifier = Modifier.fillMaxWidth()
     ) {
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 14.dp, vertical = 10.dp),
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 10.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = "My Vehicle",
+                    text = stringResource(R.string.my_vehicle),
                     fontSize = 11.sp,
                     color = if (filterEnabled) Color.White.copy(alpha = 0.7f) else Color(0xFF4B5563)
                 )
@@ -241,7 +215,8 @@ private fun VehicleBanner(
                 )
             ) {
                 Text(
-                    text = if (filterEnabled) "Remove Filter" else "Filter Parts",
+                    text = if (filterEnabled) stringResource(R.string.btn_remove_filter)
+                    else stringResource(R.string.btn_filter_parts),
                     color = if (filterEnabled) Color(0xFF1E3A8A) else Color.White,
                     fontSize = 12.sp
                 )
@@ -266,6 +241,12 @@ fun PartRow(
     val condition = part.getFirstNonBlank("Condition", "condition")
     val imageUrl = part.getFirstNonBlank("ImageUrl", "image_url", "imageurl")
 
+    val stockLabel = when {
+        stockQuantity <= 0 -> stringResource(R.string.label_out_of_stock)
+        stockQuantity <= 5 -> stringResource(R.string.label_low_stock, stockQuantity)
+        else -> stringResource(R.string.label_in_stock, stockQuantity)
+    }
+
     Card(
         colors = CardDefaults.cardColors(containerColor = Color(0xFFF8FAFC)),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
@@ -273,13 +254,11 @@ fun PartRow(
         onClick = onClick
     ) {
         Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(14.dp),
+            modifier = Modifier.fillMaxWidth().padding(14.dp),
             verticalArrangement = Arrangement.spacedBy(6.dp)
         ) {
             if (part.isEmpty()) {
-                Text(text = "Empty row")
+                Text(text = stringResource(R.string.empty_row))
                 return@Column
             }
 
@@ -287,10 +266,7 @@ fun PartRow(
                 AsyncImage(
                     model = imageUrl,
                     contentDescription = title,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(180.dp)
-                        .clip(RoundedCornerShape(12.dp)),
+                    modifier = Modifier.fillMaxWidth().height(180.dp).clip(RoundedCornerShape(12.dp)),
                     contentScale = ContentScale.Crop
                 )
             }
@@ -308,12 +284,18 @@ fun PartRow(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                Text(text = "Price: ${price.toPriceLabel()}", color = Color(0xFF1F2937))
-                Text(text = stockQuantity.toStockLabel(), color = Color(0xFF1F2937))
+                Text(
+                    text = stringResource(R.string.label_price_prefix, price.toPriceLabel()),
+                    color = Color(0xFF1F2937)
+                )
+                Text(text = stockLabel, color = Color(0xFF1F2937))
             }
 
             if (sku != null) {
-                Text(text = "SKU: $sku", color = Color(0xFF1F2937))
+                Text(
+                    text = stringResource(R.string.label_sku_prefix, sku),
+                    color = Color(0xFF1F2937)
+                )
             }
 
             if (brand != null || category != null || condition != null) {
@@ -332,7 +314,10 @@ fun PartRow(
                 enabled = canAddToBasket,
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text(if (canAddToBasket) "Add to Basket (Test)" else "Out of Stock")
+                Text(
+                    if (canAddToBasket) stringResource(R.string.btn_add_to_basket)
+                    else stringResource(R.string.btn_out_of_stock)
+                )
             }
         }
     }
@@ -357,14 +342,23 @@ fun PartDetailsDialog(
     val price = part.getFirstNonBlank("Price", "price")
     val imageUrl = part.getFirstNonBlank("ImageUrl", "image_url", "imageurl")
 
+    val stockLabel = when {
+        stockQuantity <= 0 -> stringResource(R.string.label_out_of_stock)
+        stockQuantity <= 5 -> stringResource(R.string.label_low_stock, stockQuantity)
+        else -> stringResource(R.string.label_in_stock, stockQuantity)
+    }
+
     AlertDialog(
         onDismissRequest = onDismiss,
         confirmButton = {
-            TextButton(onClick = onDismiss) { Text("Close") }
+            TextButton(onClick = onDismiss) { Text(stringResource(R.string.btn_close)) }
         },
         dismissButton = {
             Button(onClick = onAddToBasket, enabled = canAddToBasket) {
-                Text(if (canAddToBasket) "Add to Basket (Test)" else "Out of Stock")
+                Text(
+                    if (canAddToBasket) stringResource(R.string.btn_add_to_basket)
+                    else stringResource(R.string.btn_out_of_stock)
+                )
             }
         },
         title = { Text(text = title, fontWeight = FontWeight.Bold) },
@@ -374,34 +368,31 @@ fun PartDetailsDialog(
                     AsyncImage(
                         model = imageUrl,
                         contentDescription = title,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(180.dp)
-                            .clip(RoundedCornerShape(12.dp)),
+                        modifier = Modifier.fillMaxWidth().height(180.dp).clip(RoundedCornerShape(12.dp)),
                         contentScale = ContentScale.Crop
                     )
                 }
 
                 HorizontalDivider(color = Color(0xFFD1D5DB))
-                Text("Product Info", fontWeight = FontWeight.SemiBold, color = Color(0xFF111827))
-                Text("SKU: ${partNumber ?: "-"}", color = Color(0xFF374151))
-                Text("Brand: ${manufacturer ?: "-"}", color = Color(0xFF374151))
-                Text("Category: ${category ?: "-"}", color = Color(0xFF374151))
-                Text("Condition: ${condition ?: "-"}", color = Color(0xFF374151))
-                Text("Part ID: ${partId ?: "-"}", color = Color(0xFF374151))
+                Text(stringResource(R.string.section_product_info), fontWeight = FontWeight.SemiBold, color = Color(0xFF111827))
+                Text(stringResource(R.string.detail_sku, partNumber ?: "-"), color = Color(0xFF374151))
+                Text(stringResource(R.string.detail_brand, manufacturer ?: "-"), color = Color(0xFF374151))
+                Text(stringResource(R.string.detail_category, category ?: "-"), color = Color(0xFF374151))
+                Text(stringResource(R.string.detail_condition, condition ?: "-"), color = Color(0xFF374151))
+                Text(stringResource(R.string.detail_part_id, partId ?: "-"), color = Color(0xFF374151))
 
                 HorizontalDivider(color = Color(0xFFD1D5DB))
-                Text("Pricing & Stock", fontWeight = FontWeight.SemiBold, color = Color(0xFF111827))
-                Text("Price: ${price.toPriceLabel()}", color = Color(0xFF374151))
-                Text(stockQuantity.toStockLabel(), color = Color(0xFF374151))
+                Text(stringResource(R.string.section_pricing_stock), fontWeight = FontWeight.SemiBold, color = Color(0xFF111827))
+                Text(stringResource(R.string.detail_price, price.toPriceLabel()), color = Color(0xFF374151))
+                Text(stockLabel, color = Color(0xFF374151))
 
                 HorizontalDivider(color = Color(0xFFD1D5DB))
-                Text("Compatibility", fontWeight = FontWeight.SemiBold, color = Color(0xFF111827))
-                Text("Vehicle ID: ${vehicleId ?: "-"}", color = Color(0xFF374151))
+                Text(stringResource(R.string.section_compatibility), fontWeight = FontWeight.SemiBold, color = Color(0xFF111827))
+                Text(stringResource(R.string.detail_vehicle_id, vehicleId ?: "-"), color = Color(0xFF374151))
 
                 if (!description.isNullOrBlank()) {
                     HorizontalDivider(color = Color(0xFFD1D5DB))
-                    Text("Description", fontWeight = FontWeight.SemiBold, color = Color(0xFF111827))
+                    Text(stringResource(R.string.section_description), fontWeight = FontWeight.SemiBold, color = Color(0xFF111827))
                     Text(description, color = Color(0xFF374151))
                 }
             }
