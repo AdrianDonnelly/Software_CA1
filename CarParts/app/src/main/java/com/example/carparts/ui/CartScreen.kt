@@ -19,10 +19,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.carparts.CartItem
+import com.example.carparts.R
 import com.example.carparts.util.basketKey
 import com.example.carparts.util.getFirstNonBlank
 import com.example.carparts.util.toPriceLabel
@@ -49,14 +51,14 @@ fun CartScreen(
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         Text(
-            text = "Cart",
+            text = stringResource(R.string.cart_title),
             fontSize = 24.sp,
             fontWeight = FontWeight.ExtraBold,
             color = Color(0xFF1E3A8A)
         )
 
         if (items.isEmpty()) {
-            Text(text = "Your cart is empty (test).", color = Color(0xFF4B5563))
+            Text(text = stringResource(R.string.cart_empty), color = Color(0xFF4B5563))
         } else {
             LazyColumn(
                 modifier = Modifier.weight(1f),
@@ -79,13 +81,19 @@ fun CartScreen(
                             verticalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
                             Text(title, fontWeight = FontWeight.SemiBold, color = Color(0xFF111827))
-                            Text("Price: $priceText", color = Color(0xFF374151))
+                            Text(
+                                stringResource(R.string.label_cart_price, priceText),
+                                color = Color(0xFF374151)
+                            )
                             Row(
                                 verticalAlignment = Alignment.CenterVertically,
                                 horizontalArrangement = Arrangement.spacedBy(8.dp)
                             ) {
                                 TextButton(onClick = { onDecreaseItem(key) }) { Text("-") }
-                                Text("Qty: ${item.quantity}", color = Color(0xFF111827))
+                                Text(
+                                    stringResource(R.string.label_qty, item.quantity),
+                                    color = Color(0xFF111827)
+                                )
                                 TextButton(onClick = { onIncreaseItem(key) }) { Text("+") }
                             }
                         }
@@ -96,7 +104,7 @@ fun CartScreen(
 
         HorizontalDivider(color = Color(0xFFD1D5DB))
         Text(
-            text = "Subtotal (test): $${"%.2f".format(subtotal)}",
+            text = stringResource(R.string.label_subtotal, "%.2f".format(subtotal)),
             fontWeight = FontWeight.SemiBold,
             color = Color(0xFF111827)
         )
@@ -105,10 +113,10 @@ fun CartScreen(
             enabled = items.isNotEmpty(),
             modifier = Modifier.fillMaxWidth()
         ) {
-            Text("Checkout (test)")
+            Text(stringResource(R.string.btn_checkout))
         }
         TextButton(onClick = onBackToParts, modifier = Modifier.fillMaxWidth()) {
-            Text("Back to Parts")
+            Text(stringResource(R.string.btn_back_to_parts))
         }
     }
 }

@@ -22,9 +22,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.carparts.R
 
 @Composable
 fun CategoryDrawer(
@@ -47,7 +49,7 @@ fun CategoryDrawer(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "Shop by Category",
+                    text = stringResource(R.string.shop_by_category),
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color.White,
@@ -58,7 +60,7 @@ fun CategoryDrawer(
                 IconButton(onClick = onClose) {
                     Icon(
                         imageVector = Icons.Default.Close,
-                        contentDescription = "Close",
+                        contentDescription = stringResource(R.string.cd_close),
                         tint = Color.White
                     )
                 }
@@ -68,7 +70,7 @@ fun CategoryDrawer(
         LazyColumn(modifier = Modifier.fillMaxSize()) {
             item {
                 CategoryDrawerItem(
-                    label = "All Parts",
+                    label = stringResource(R.string.all_parts),
                     isSelected = selectedCategory == null,
                     onClick = { onCategorySelected(null) }
                 )
