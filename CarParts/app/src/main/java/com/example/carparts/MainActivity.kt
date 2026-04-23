@@ -1,8 +1,8 @@
 package com.example.carparts
 
 import android.os.Bundle
-import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.appcompat.app.AppCompatActivity
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.slideInHorizontally
@@ -26,6 +26,7 @@ import com.example.carparts.ui.CategoryDrawer
 import com.example.carparts.ui.PartsScreen
 import com.example.carparts.ui.ProfileScreen
 import com.example.carparts.ui.admin.AdminScreen
+import androidx.compose.ui.res.stringResource
 import com.example.carparts.ui.theme.CarPartsTheme
 import com.example.carparts.util.VehiclePreferences
 import com.example.carparts.util.basketKey
@@ -53,6 +54,8 @@ class MainActivity : ComponentActivity() {
                 val basketCount = basket.values.sumOf { it.quantity }
                 val snackbarHostState = remember { SnackbarHostState() }
                 val scope = rememberCoroutineScope()
+                val msgSignedOut = stringResource(R.string.msg_signed_out)
+                val msgCheckoutTest = stringResource(R.string.msg_checkout_test)
                 var selectedVehicle by remember { mutableStateOf(VehiclePreferences.load(context)) }
 
                 Box(modifier = androidx.compose.ui.Modifier.fillMaxSize()) {
@@ -106,7 +109,7 @@ class MainActivity : ComponentActivity() {
                                             currentScreen = HomeScreen.PARTS
                                             isCategoryDrawerOpen = false
                                             basket.clear()
-                                            snackbarHostState.showSnackbar("Signed out")
+                                            snackbarHostState.showSnackbar(msgSignedOut)
                                         }
                                     }
                                 )
@@ -123,9 +126,7 @@ class MainActivity : ComponentActivity() {
                                     onBackToParts = { currentScreen = HomeScreen.PARTS },
                                     onCheckoutTest = {
                                         scope.launch {
-                                            snackbarHostState.showSnackbar(
-                                                "Checkout (test) clicked. No DB stock updates yet."
-                                            )
+                                            snackbarHostState.showSnackbar(msgCheckoutTest)
                                         }
                                     },
                                     onIncreaseItem = { key ->
@@ -156,7 +157,9 @@ class MainActivity : ComponentActivity() {
                                         }
                                         val title = part.getFirstNonBlank("Name", "name", "title") ?: "Part"
                                         scope.launch {
-                                            snackbarHostState.showSnackbar("$title added to basket")
+                                            snackbarHostState.showSnackbar(
+                                                context.getString(R.string.msg_added_to_basket, title)
+                                            )
                                         }
                                     }
                                 )

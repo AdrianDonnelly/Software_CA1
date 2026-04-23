@@ -16,9 +16,11 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
+import androidx.core.os.LocaleListCompat
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Text
@@ -32,9 +34,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.carparts.R
 import com.example.carparts.data.remote.AuthRepository
 import com.example.carparts.util.SelectedVehicle
 
@@ -95,7 +99,12 @@ fun ProfileScreen(
                     .background(Color(0xFF1E3A8A))
                     .padding(horizontal = 14.dp, vertical = 4.dp)
             ) {
-                Text(text = "Admin", fontSize = 13.sp, color = Color.White, fontWeight = FontWeight.SemiBold)
+                Text(
+                    text = stringResource(R.string.badge_admin),
+                    fontSize = 13.sp,
+                    color = Color.White,
+                    fontWeight = FontWeight.SemiBold
+                )
             }
         }
 
@@ -107,17 +116,20 @@ fun ProfileScreen(
             elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
         ) {
             Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
+                modifier = Modifier.fillMaxWidth().padding(16.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                Text("Account Details", fontWeight = FontWeight.Bold, color = Color(0xFF111827), fontSize = 16.sp)
+                Text(
+                    stringResource(R.string.section_account_details),
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFF111827),
+                    fontSize = 16.sp
+                )
                 HorizontalDivider(color = Color(0xFFE5E7EB))
-                ProfileRow(label = "Email", value = email)
-                ProfileRow(label = "Account ID", value = shortId)
-                ProfileRow(label = "Member Since", value = memberSince)
-                ProfileRow(label = "Last Sign In", value = lastSignIn)
+                ProfileRow(label = stringResource(R.string.label_email), value = email)
+                ProfileRow(label = stringResource(R.string.label_account_id), value = shortId)
+                ProfileRow(label = stringResource(R.string.label_member_since), value = memberSince)
+                ProfileRow(label = stringResource(R.string.label_last_sign_in), value = lastSignIn)
             }
         }
 
@@ -127,9 +139,7 @@ fun ProfileScreen(
             elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
         ) {
             Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
+                modifier = Modifier.fillMaxWidth().padding(16.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 Row(
@@ -138,14 +148,17 @@ fun ProfileScreen(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = "My Vehicle",
+                        text = stringResource(R.string.section_my_vehicle),
                         fontWeight = FontWeight.Bold,
                         color = Color(0xFF111827),
                         fontSize = 16.sp
                     )
                     TextButton(onClick = { showVehiclePicker = true }) {
                         Text(
-                            text = if (selectedVehicle != null) "Change" else "Set Vehicle",
+                            text = if (selectedVehicle != null)
+                                stringResource(R.string.btn_change_vehicle)
+                            else
+                                stringResource(R.string.btn_set_vehicle),
                             color = Color(0xFF1E3A8A)
                         )
                     }
@@ -154,23 +167,27 @@ fun ProfileScreen(
                 HorizontalDivider(color = Color(0xFFE5E7EB))
 
                 if (selectedVehicle != null) {
-                    ProfileRow(label = "Make", value = selectedVehicle.make)
-                    ProfileRow(label = "Model", value = selectedVehicle.model)
+                    ProfileRow(label = stringResource(R.string.label_make), value = selectedVehicle.make)
+                    ProfileRow(label = stringResource(R.string.label_model), value = selectedVehicle.model)
                     if (selectedVehicle.year.isNotBlank()) {
-                        ProfileRow(label = "Year", value = selectedVehicle.year)
+                        ProfileRow(label = stringResource(R.string.label_year), value = selectedVehicle.year)
                     }
                     if (selectedVehicle.engineType.isNotBlank()) {
-                        ProfileRow(label = "Engine", value = selectedVehicle.engineType)
+                        ProfileRow(label = stringResource(R.string.label_engine), value = selectedVehicle.engineType)
                     }
                     TextButton(
                         onClick = { onVehicleChanged(null) },
                         modifier = Modifier.align(Alignment.End)
                     ) {
-                        Text("Remove Vehicle", color = Color(0xFFDC2626), fontSize = 13.sp)
+                        Text(
+                            stringResource(R.string.btn_remove_vehicle),
+                            color = Color(0xFFDC2626),
+                            fontSize = 13.sp
+                        )
                     }
                 } else {
                     Text(
-                        text = "No vehicle set. Tap \"Set Vehicle\" to choose one and filter parts on the home screen.",
+                        text = stringResource(R.string.no_vehicle_set),
                         color = Color(0xFF6B7280),
                         fontSize = 14.sp
                     )
@@ -181,11 +198,27 @@ fun ProfileScreen(
         Spacer(modifier = Modifier.weight(1f))
 
         Button(
+            onClick = {
+                val locales = AppCompatDelegate.getApplicationLocales()
+                val isIrish = !locales.isEmpty && locales[0]?.language == "ga"
+                if (isIrish) {
+                    AppCompatDelegate.setApplicationLocales(LocaleListCompat.getEmptyLocaleList())
+                } else {
+                    AppCompatDelegate.setApplicationLocales(LocaleListCompat.forLanguageTags("ga"))
+                }
+            },
+            modifier = Modifier.fillMaxWidth(),
+            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF065F46))
+        ) {
+            Text(stringResource(R.string.btn_switch_language), fontWeight = FontWeight.SemiBold)
+        }
+
+        Button(
             onClick = onSignOut,
             modifier = Modifier.fillMaxWidth(),
             colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFDC2626))
         ) {
-            Text("Sign Out", fontWeight = FontWeight.SemiBold)
+            Text(stringResource(R.string.btn_sign_out), fontWeight = FontWeight.SemiBold)
         }
 
         Spacer(modifier = Modifier.height(16.dp))
