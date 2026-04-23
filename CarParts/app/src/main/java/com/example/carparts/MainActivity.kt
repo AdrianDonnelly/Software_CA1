@@ -27,6 +27,7 @@ import com.example.carparts.ui.PartsScreen
 import com.example.carparts.ui.ProfileScreen
 import com.example.carparts.ui.admin.AdminScreen
 import com.example.carparts.ui.theme.CarPartsTheme
+import com.example.carparts.util.VehiclePreferences
 import com.example.carparts.util.basketKey
 import com.example.carparts.util.getFirstNonBlank
 import kotlinx.coroutines.launch
@@ -37,6 +38,8 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+
+        val context = this
 
         setContent {
             CarPartsTheme {
@@ -50,6 +53,7 @@ class MainActivity : ComponentActivity() {
                 val basketCount = basket.values.sumOf { it.quantity }
                 val snackbarHostState = remember { SnackbarHostState() }
                 val scope = rememberCoroutineScope()
+                var selectedVehicle by remember { mutableStateOf(VehiclePreferences.load(context)) }
 
                 Box(modifier = androidx.compose.ui.Modifier.fillMaxSize()) {
                     Scaffold(
@@ -76,6 +80,7 @@ class MainActivity : ComponentActivity() {
                                     isAuthenticated = true
                                     isAdmin = AuthRepository.getCurrentUserEmail()
                                         .equals(ADMIN_EMAIL, ignoreCase = true)
+                                    selectedVehicle = VehiclePreferences.load(context)
                                     scope.launch { snackbarHostState.showSnackbar(message) }
                                 }
                             )
@@ -84,12 +89,20 @@ class MainActivity : ComponentActivity() {
                                 HomeScreen.PROFILE -> ProfileScreen(
                                     innerPadding = innerPadding,
                                     isAdmin = isAdmin,
+                                    selectedVehicle = selectedVehicle,
+                                    onVehicleChanged = { vehicle ->
+                                        selectedVehicle = vehicle
+                                        if (vehicle != null) VehiclePreferences.save(context, vehicle)
+                                        else VehiclePreferences.clear(context)
+                                    },
                                     onSignOut = {
                                         scope.launch {
                                             AuthRepository.signOut()
                                             isAuthenticated = false
                                             isAdmin = false
                                             selectedCategory = null
+                                            selectedVehicle = null
+                                            VehiclePreferences.clear(context)
                                             currentScreen = HomeScreen.PARTS
                                             isCategoryDrawerOpen = false
                                             basket.clear()
@@ -131,6 +144,7 @@ class MainActivity : ComponentActivity() {
                                 HomeScreen.PARTS -> PartsScreen(
                                     innerPadding = innerPadding,
                                     selectedCategory = selectedCategory,
+                                    selectedVehicle = selectedVehicle,
                                     onCategoriesLoaded = { availableCategories = it },
                                     onAddToBasket = { part ->
                                         val key = part.basketKey()

@@ -15,6 +15,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -38,6 +39,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.example.carparts.data.remote.SupaBaseClient
+import com.example.carparts.util.SelectedVehicle
 import com.example.carparts.util.getFirstNonBlank
 import com.example.carparts.util.matchesCategory
 import com.example.carparts.util.readCategoryName
@@ -49,6 +51,7 @@ import com.example.carparts.util.toStockLabel
 fun PartsScreen(
     innerPadding: PaddingValues,
     selectedCategory: String?,
+    selectedVehicle: SelectedVehicle?,
     onCategoriesLoaded: (List<String>) -> Unit,
     onAddToBasket: (Map<String, String>) -> Unit
 ) {
@@ -56,6 +59,11 @@ fun PartsScreen(
     var isLoading by remember { mutableStateOf(true) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
     var selectedPart by remember { mutableStateOf<Map<String, String>?>(null) }
+    var filterByVehicle by remember { mutableStateOf(false) }
+
+    LaunchedEffect(selectedVehicle) {
+        if (selectedVehicle == null) filterByVehicle = false
+    }
 
     LaunchedEffect(Unit) {
         isLoading = true
@@ -77,11 +85,16 @@ fun PartsScreen(
         isLoading = false
     }
 
-    val visibleParts = if (selectedCategory.isNullOrBlank()) {
-        parts
-    } else {
-        parts.filter { it.matchesCategory(selectedCategory) }
-    }
+    val visibleParts = parts
+        .let { list ->
+            if (!selectedCategory.isNullOrBlank()) list.filter { it.matchesCategory(selectedCategory) }
+            else list
+        }
+        .let { list ->
+            if (filterByVehicle && selectedVehicle != null) {
+                list.filter { it.getFirstNonBlank("VehicleId", "vehicleid") == selectedVehicle.id }
+            } else list
+        }
 
     when {
         isLoading -> {
@@ -107,23 +120,6 @@ fun PartsScreen(
             }
         }
 
-        visibleParts.isEmpty() -> {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(innerPadding)
-                    .padding(16.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                val message = if (selectedCategory.isNullOrBlank()) {
-                    "No parts found in your Supabase table."
-                } else {
-                    "No parts found in \"$selectedCategory\"."
-                }
-                Text(text = message)
-            }
-        }
-
         else -> {
             LazyColumn(
                 modifier = Modifier
@@ -132,9 +128,25 @@ fun PartsScreen(
                 contentPadding = PaddingValues(16.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
+                if (selectedVehicle != null) {
+                    item {
+                        VehicleBanner(
+                            vehicle = selectedVehicle,
+                            filterEnabled = filterByVehicle,
+                            onToggleFilter = { filterByVehicle = !filterByVehicle }
+                        )
+                    }
+                }
+
                 item {
+                    val heading = when {
+                        filterByVehicle && selectedVehicle != null ->
+                            "Parts for ${selectedVehicle.displayName}"
+                        !selectedCategory.isNullOrBlank() -> selectedCategory
+                        else -> "All Parts"
+                    }
                     Text(
-                        text = selectedCategory ?: "All Parts",
+                        text = heading,
                         fontSize = 22.sp,
                         fontWeight = FontWeight.ExtraBold,
                         color = Color(0xFF1E3A8A)
@@ -142,14 +154,35 @@ fun PartsScreen(
                     Spacer(modifier = Modifier.height(4.dp))
                     HorizontalDivider(color = Color(0xFFE5E7EB))
                 }
-                items(visibleParts) { part ->
-                    val stockQuantity = part.readStockQuantity()
-                    PartRow(
-                        part = part,
-                        onClick = { selectedPart = part },
-                        onAddToBasket = { onAddToBasket(part) },
-                        canAddToBasket = stockQuantity > 0
-                    )
+
+                if (visibleParts.isEmpty()) {
+                    item {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 32.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            val message = when {
+                                filterByVehicle && selectedVehicle != null ->
+                                    "No parts found for ${selectedVehicle.displayName}."
+                                !selectedCategory.isNullOrBlank() ->
+                                    "No parts found in \"$selectedCategory\"."
+                                else -> "No parts found in your Supabase table."
+                            }
+                            Text(text = message, color = Color(0xFF6B7280))
+                        }
+                    }
+                } else {
+                    items(visibleParts) { part ->
+                        val stockQuantity = part.readStockQuantity()
+                        PartRow(
+                            part = part,
+                            onClick = { selectedPart = part },
+                            onAddToBasket = { onAddToBasket(part) },
+                            canAddToBasket = stockQuantity > 0
+                        )
+                    }
                 }
             }
         }
@@ -163,6 +196,57 @@ fun PartsScreen(
             onAddToBasket = { onAddToBasket(part) },
             canAddToBasket = stockQuantity > 0
         )
+    }
+}
+
+@Composable
+private fun VehicleBanner(
+    vehicle: SelectedVehicle,
+    filterEnabled: Boolean,
+    onToggleFilter: () -> Unit
+) {
+    Card(
+        colors = CardDefaults.cardColors(
+            containerColor = if (filterEnabled) Color(0xFF1E3A8A) else Color(0xFFEFF6FF)
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 14.dp, vertical = 10.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = "My Vehicle",
+                    fontSize = 11.sp,
+                    color = if (filterEnabled) Color.White.copy(alpha = 0.7f) else Color(0xFF4B5563)
+                )
+                Text(
+                    text = vehicle.displayName,
+                    fontWeight = FontWeight.SemiBold,
+                    fontSize = 15.sp,
+                    color = if (filterEnabled) Color.White else Color(0xFF1E3A8A),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
+            Button(
+                onClick = onToggleFilter,
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = if (filterEnabled) Color.White else Color(0xFF1E3A8A)
+                )
+            ) {
+                Text(
+                    text = if (filterEnabled) "Remove Filter" else "Filter Parts",
+                    color = if (filterEnabled) Color(0xFF1E3A8A) else Color.White,
+                    fontSize = 12.sp
+                )
+            }
+        }
     }
 }
 
