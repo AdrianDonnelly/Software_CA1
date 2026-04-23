@@ -1,3 +1,149 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- App -->
     <string name="app_name">CarParts</string>
+    <string name="app_title">CarParts</string>
+
+    <!-- Auth -->
+    <string name="welcome_title">Welcome to CarParts</string>
+    <string name="welcome_subtitle">Sign in or create an account to continue.</string>
+    <string name="label_email">Email</string>
+    <string name="label_password">Password</string>
+    <string name="btn_login">Login</string>
+    <string name="btn_sign_up">Sign Up</string>
+    <string name="error_email_password_required">Email and password are required.</string>
+    <string name="error_invalid_email">Enter a valid email.</string>
+    <string name="error_password_too_short">Password must be at least 6 characters.</string>
+    <string name="msg_signed_in">Signed in successfully</string>
+    <string name="msg_account_created">Account created. You are logged in.</string>
+    <string name="error_sign_in_failed">Sign in failed.</string>
+    <string name="error_sign_up_failed">Sign up failed.</string>
+
+    <!-- Top Bar -->
+    <string name="cd_browse_categories">Browse categories</string>
+    <string name="cd_open_cart">Open cart</string>
+    <string name="cd_admin_panel">Admin panel</string>
+    <string name="cd_view_profile">View profile</string>
+
+    <!-- Category Drawer -->
+    <string name="shop_by_category">Shop by Category</string>
+    <string name="all_parts">All Parts</string>
+    <string name="cd_close">Close</string>
+
+    <!-- Parts Screen -->
+    <string name="heading_parts_for_vehicle">Parts for %1$s</string>
+    <string name="no_parts_found">No parts found in the database.</string>
+    <string name="no_parts_in_category">No parts found in \"%1$s\".</string>
+    <string name="no_parts_for_vehicle">No parts found for %1$s.</string>
+    <string name="label_price_prefix">Price: %1$s</string>
+    <string name="label_sku_prefix">SKU: %1$s</string>
+    <string name="btn_add_to_basket">Add to Basket</string>
+    <string name="btn_out_of_stock">Out of Stock</string>
+    <string name="label_out_of_stock">Out of stock</string>
+    <string name="label_low_stock">Low stock (%1$d)</string>
+    <string name="label_in_stock">In stock (%1$d)</string>
+
+    <!-- Vehicle Banner -->
+    <string name="my_vehicle">My Vehicle</string>
+    <string name="btn_filter_parts">Filter Parts</string>
+    <string name="btn_remove_filter">Remove Filter</string>
+
+    <!-- Part Details Dialog -->
+    <string name="section_product_info">Product Info</string>
+    <string name="detail_sku">SKU: %1$s</string>
+    <string name="detail_brand">Brand: %1$s</string>
+    <string name="detail_category">Category: %1$s</string>
+    <string name="detail_condition">Condition: %1$s</string>
+    <string name="detail_part_id">Part ID: %1$s</string>
+    <string name="section_pricing_stock">Pricing &amp; Stock</string>
+    <string name="detail_price">Price: %1$s</string>
+    <string name="section_compatibility">Compatibility</string>
+    <string name="detail_vehicle_id">Vehicle ID: %1$s</string>
+    <string name="section_description">Description</string>
+    <string name="btn_close">Close</string>
+    <string name="empty_row">Empty row</string>
+
+    <!-- Cart -->
+    <string name="cart_title">Cart</string>
+    <string name="cart_empty">Your cart is empty.</string>
+    <string name="label_cart_price">Price: %1$s</string>
+    <string name="label_qty">Qty: %1$d</string>
+    <string name="label_subtotal">Subtotal: $%1$s</string>
+    <string name="btn_checkout">Checkout</string>
+    <string name="btn_back_to_parts">Back to Parts</string>
+    <string name="msg_checkout_test">Checkout clicked. No stock updates yet.</string>
+
+    <!-- Profile -->
+    <string name="section_account_details">Account Details</string>
+    <string name="label_account_id">Account ID</string>
+    <string name="label_member_since">Member Since</string>
+    <string name="label_last_sign_in">Last Sign In</string>
+    <string name="section_my_vehicle">My Vehicle</string>
+    <string name="btn_change_vehicle">Change</string>
+    <string name="btn_set_vehicle">Set Vehicle</string>
+    <string name="label_make">Make</string>
+    <string name="label_model">Model</string>
+    <string name="label_year">Year</string>
+    <string name="label_engine">Engine</string>
+    <string name="no_vehicle_set">No vehicle set. Tap \"Set Vehicle\" to choose one and filter parts on the home screen.</string>
+    <string name="btn_remove_vehicle">Remove Vehicle</string>
+    <string name="badge_admin">Admin</string>
+    <string name="btn_sign_out">Sign Out</string>
+    <string name="msg_signed_out">Signed out</string>
+
+    <!-- Vehicle Picker -->
+    <string name="picker_title">Select Your Vehicle</string>
+    <string name="picker_error">Could not load vehicles: %1$s</string>
+    <string name="picker_no_vehicles">No vehicles available. Ask an admin to add vehicles.</string>
+    <string name="picker_label_make">Make</string>
+    <string name="picker_label_model">Model</string>
+    <string name="picker_label_year">Year</string>
+    <string name="picker_select_make">Select Make</string>
+    <string name="picker_select_model">Select Model</string>
+    <string name="picker_select_year">Select Year</string>
+    <string name="picker_engine">Engine: %1$s</string>
+    <string name="btn_cancel">Cancel</string>
+
+    <!-- Admin Menu -->
+    <string name="admin_panel_title">Admin Panel</string>
+    <string name="admin_add_part_title">Add Part</string>
+    <string name="admin_add_part_desc">Add a new car part to the catalogue</string>
+    <string name="admin_add_vehicle_title">Add Vehicle</string>
+    <string name="admin_add_vehicle_desc">Add a new vehicle make and model</string>
+    <string name="cd_back">Back</string>
+    <string name="btn_back">Back</string>
+
+    <!-- Admin Add Part -->
+    <string name="field_name_required">Name *</string>
+    <string name="field_price">Price</string>
+    <string name="field_part_number">Part Number / SKU</string>
+    <string name="field_manufacturer">Manufacturer</string>
+    <string name="field_category">Category</string>
+    <string name="field_condition">Condition</string>
+    <string name="field_stock_quantity">Stock Quantity</string>
+    <string name="field_image_url">Image URL</string>
+    <string name="field_vehicle_make">Vehicle Make</string>
+    <string name="field_vehicle_model">Vehicle Model</string>
+    <string name="field_description">Description</string>
+    <string name="btn_adding">Adding…</string>
+    <string name="error_name_required">Name is required.</string>
+    <string name="error_part_number_exists">Part Number \"%1$s\" already exists. Use a unique SKU.</string>
+    <string name="error_add_part_failed">Failed to add part.</string>
+    <string name="msg_part_added">Part \"%1$s\" added successfully.</string>
+
+    <!-- Admin Add Vehicle -->
+    <string name="field_make_required">Make *</string>
+    <string name="field_model_required">Model *</string>
+    <string name="field_year">Year</string>
+    <string name="field_engine_type">Engine Type</string>
+    <string name="error_make_model_required">Make and Model are required.</string>
+    <string name="error_add_vehicle_failed">Failed to add vehicle.</string>
+    <string name="msg_vehicle_added">Vehicle \"%1$s %2$s\" added successfully.</string>
+    <string name="btn_add_vehicle">Add Vehicle</string>
+
+    <!-- Snackbar -->
+    <string name="msg_added_to_basket">%1$s added to basket</string>
+
+    <!-- Language -->
+    <string name="btn_switch_language">Switch to Irish</string>
 </resources>
