@@ -24,9 +24,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.carparts.R
 
 @Composable
 fun CarPartsTopBar(
@@ -53,13 +55,13 @@ fun CarPartsTopBar(
             IconButton(onClick = onOpenCategoryDrawer) {
                 Icon(
                     imageVector = Icons.Default.Menu,
-                    contentDescription = "Browse categories",
+                    contentDescription = stringResource(R.string.cd_browse_categories),
                     tint = Color(0xFF1E3A8A)
                 )
             }
 
             Text(
-                text = "CarParts",
+                text = stringResource(R.string.app_title),
                 fontSize = 24.sp,
                 fontWeight = FontWeight.ExtraBold,
                 color = Color(0xFF1E3A8A),
@@ -84,7 +86,7 @@ fun CarPartsTopBar(
                     ) {
                         Icon(
                             imageVector = Icons.Default.ShoppingCart,
-                            contentDescription = "Open cart",
+                            contentDescription = stringResource(R.string.cd_open_cart),
                             tint = Color(0xFF1E3A8A)
                         )
                     }
@@ -101,7 +103,7 @@ fun CarPartsTopBar(
                     ) {
                         Icon(
                             imageVector = Icons.Default.Settings,
-                            contentDescription = "Admin panel",
+                            contentDescription = stringResource(R.string.cd_admin_panel),
                             tint = Color(0xFF1E3A8A)
                         )
                     }
@@ -118,7 +120,7 @@ fun CarPartsTopBar(
                 ) {
                     Icon(
                         imageVector = Icons.Default.Person,
-                        contentDescription = "View profile",
+                        contentDescription = stringResource(R.string.cd_view_profile),
                         tint = Color(0xFF1E3A8A)
                     )
                 }

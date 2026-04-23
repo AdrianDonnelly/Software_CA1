@@ -25,9 +25,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.carparts.R
 import com.example.carparts.data.remote.ApiClient
 import com.example.carparts.util.SelectedVehicle
 import com.example.carparts.util.getFirstNonBlank
@@ -48,7 +50,7 @@ fun VehiclePickerDialog(
     LaunchedEffect(Unit) {
         ApiClient.fetchVehicles()
             .onSuccess { vehicles = it }
-            .onFailure { error = it.message ?: "Failed to load vehicles." }
+            .onFailure { error = it.message ?: "Unknown error" }
         isLoading = false
     }
 
@@ -89,9 +91,13 @@ fun VehiclePickerDialog(
         }
     }
 
+    val selectMakeHint = stringResource(R.string.picker_select_make)
+    val selectModelHint = stringResource(R.string.picker_select_model)
+    val selectYearHint = stringResource(R.string.picker_select_year)
+
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Select Your Vehicle", fontWeight = FontWeight.Bold) },
+        title = { Text(stringResource(R.string.picker_title), fontWeight = FontWeight.Bold) },
         text = {
             when {
                 isLoading -> Box(
@@ -100,19 +106,20 @@ fun VehiclePickerDialog(
                 ) { CircularProgressIndicator() }
 
                 error != null -> Text(
-                    text = "Could not load vehicles: $error",
+                    text = stringResource(R.string.picker_error, error ?: ""),
                     color = Color(0xFFB91C1C)
                 )
 
                 vehicles.isEmpty() -> Text(
-                    text = "No vehicles available. Ask an admin to add vehicles.",
+                    text = stringResource(R.string.picker_no_vehicles),
                     color = Color(0xFF6B7280)
                 )
 
                 else -> Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     VehicleDropdown(
-                        label = "Make",
+                        label = stringResource(R.string.picker_label_make),
                         selected = selectedMake,
+                        placeholder = selectMakeHint,
                         options = availableMakes,
                         onSelected = {
                             selectedMake = it
@@ -122,8 +129,9 @@ fun VehiclePickerDialog(
                         enabled = true
                     )
                     VehicleDropdown(
-                        label = "Model",
+                        label = stringResource(R.string.picker_label_model),
                         selected = selectedModel,
+                        placeholder = selectModelHint,
                         options = availableModels,
                         onSelected = {
                             selectedModel = it
@@ -133,8 +141,9 @@ fun VehiclePickerDialog(
                     )
                     if (availableYears.isNotEmpty()) {
                         VehicleDropdown(
-                            label = "Year",
+                            label = stringResource(R.string.picker_label_year),
                             selected = selectedYear,
+                            placeholder = selectYearHint,
                             options = availableYears,
                             onSelected = { selectedYear = it },
                             enabled = selectedModel != null
@@ -144,7 +153,7 @@ fun VehiclePickerDialog(
                         val engine = v.getFirstNonBlank("EngineType", "enginetype", "engine_type")
                         if (!engine.isNullOrBlank()) {
                             Text(
-                                text = "Engine: $engine",
+                                text = stringResource(R.string.picker_engine, engine),
                                 color = Color(0xFF4B5563),
                                 fontSize = 14.sp
                             )
@@ -170,11 +179,11 @@ fun VehiclePickerDialog(
                 },
                 enabled = matchingVehicle != null
             ) {
-                Text("Set Vehicle")
+                Text(stringResource(R.string.btn_set_vehicle))
             }
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) { Text("Cancel") }
+            TextButton(onClick = onDismiss) { Text(stringResource(R.string.btn_cancel)) }
         }
     )
 }
@@ -184,6 +193,7 @@ fun VehiclePickerDialog(
 private fun VehicleDropdown(
     label: String,
     selected: String?,
+    placeholder: String,
     options: List<String>,
     onSelected: (String) -> Unit,
     enabled: Boolean
@@ -195,7 +205,7 @@ private fun VehicleDropdown(
         onExpandedChange = { if (enabled && options.isNotEmpty()) expanded = it }
     ) {
         OutlinedTextField(
-            value = selected ?: "Select $label",
+            value = selected ?: placeholder,
             onValueChange = {},
             readOnly = true,
             label = { Text(label) },

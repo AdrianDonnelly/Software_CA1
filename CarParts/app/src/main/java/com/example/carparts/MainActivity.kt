@@ -35,7 +35,7 @@ import kotlinx.coroutines.launch
 
 private const val ADMIN_EMAIL = "admin@carparts.com"
 
-class MainActivity : ComponentActivity() {
+class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
