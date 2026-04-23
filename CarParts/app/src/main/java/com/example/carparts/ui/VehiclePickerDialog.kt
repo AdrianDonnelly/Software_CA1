@@ -28,7 +28,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.carparts.data.remote.SupaBaseClient
+import com.example.carparts.data.remote.ApiClient
 import com.example.carparts.util.SelectedVehicle
 import com.example.carparts.util.getFirstNonBlank
 
@@ -46,7 +46,7 @@ fun VehiclePickerDialog(
     var selectedYear by remember { mutableStateOf<String?>(null) }
 
     LaunchedEffect(Unit) {
-        SupaBaseClient.fetchVehicles()
+        ApiClient.fetchVehicles()
             .onSuccess { vehicles = it }
             .onFailure { error = it.message ?: "Failed to load vehicles." }
         isLoading = false

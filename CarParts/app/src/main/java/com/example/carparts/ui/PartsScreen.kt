@@ -38,7 +38,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
-import com.example.carparts.data.remote.SupaBaseClient
+import com.example.carparts.data.remote.ApiClient
 import com.example.carparts.util.SelectedVehicle
 import com.example.carparts.util.getFirstNonBlank
 import com.example.carparts.util.matchesCategory
@@ -69,7 +69,7 @@ fun PartsScreen(
         isLoading = true
         errorMessage = null
 
-        SupaBaseClient.fetchParts()
+        ApiClient.fetchParts()
             .onSuccess { fetchedParts ->
                 parts = fetchedParts.shuffled()
                 onCategoriesLoaded(
