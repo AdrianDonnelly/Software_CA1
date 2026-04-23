@@ -23,10 +23,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.carparts.R
 import com.example.carparts.data.remote.AuthRepository
 import kotlinx.coroutines.launch
 
@@ -40,17 +42,25 @@ fun AuthScreen(
     var isLoading by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
 
+    val errEmailRequired = stringResource(R.string.error_email_password_required)
+    val errInvalidEmail = stringResource(R.string.error_invalid_email)
+    val errPasswordShort = stringResource(R.string.error_password_too_short)
+    val msgSignedIn = stringResource(R.string.msg_signed_in)
+    val msgAccountCreated = stringResource(R.string.msg_account_created)
+    val errSignInFailed = stringResource(R.string.error_sign_in_failed)
+    val errSignUpFailed = stringResource(R.string.error_sign_up_failed)
+
     fun validateInputs(): Boolean {
         if (email.isBlank() || password.isBlank()) {
-            errorMessage = "Email and password are required."
+            errorMessage = errEmailRequired
             return false
         }
         if (!email.contains("@")) {
-            errorMessage = "Enter a valid email."
+            errorMessage = errInvalidEmail
             return false
         }
         if (password.length < 6) {
-            errorMessage = "Password must be at least 6 characters."
+            errorMessage = errPasswordShort
             return false
         }
         return true
@@ -77,27 +87,27 @@ fun AuthScreen(
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 Text(
-                    text = "Welcome to CarParts",
+                    text = stringResource(R.string.welcome_title),
                     fontSize = 24.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color(0xFF111827)
                 )
                 Text(
-                    text = "Sign in or create an account to continue.",
+                    text = stringResource(R.string.welcome_subtitle),
                     color = Color(0xFF4B5563)
                 )
 
                 TextField(
                     value = email,
                     onValueChange = { email = it; errorMessage = null },
-                    label = { Text("Email") },
+                    label = { Text(stringResource(R.string.label_email)) },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth()
                 )
                 TextField(
                     value = password,
                     onValueChange = { password = it; errorMessage = null },
-                    label = { Text("Password") },
+                    label = { Text(stringResource(R.string.label_password)) },
                     singleLine = true,
                     visualTransformation = PasswordVisualTransformation(),
                     modifier = Modifier.fillMaxWidth()
@@ -117,15 +127,15 @@ fun AuthScreen(
                             isLoading = true
                             scope.launch {
                                 AuthRepository.signIn(email.trim(), password)
-                                    .onSuccess { onAuthSuccess("Signed in successfully") }
-                                    .onFailure { errorMessage = it.message ?: "Sign in failed." }
+                                    .onSuccess { onAuthSuccess(msgSignedIn) }
+                                    .onFailure { errorMessage = it.message ?: errSignInFailed }
                                 isLoading = false
                             }
                         },
                         enabled = !isLoading,
                         modifier = Modifier.weight(1f)
                     ) {
-                        Text("Login")
+                        Text(stringResource(R.string.btn_login))
                     }
 
                     Button(
@@ -134,8 +144,8 @@ fun AuthScreen(
                             isLoading = true
                             scope.launch {
                                 AuthRepository.signUp(email.trim(), password)
-                                    .onSuccess { onAuthSuccess("Account created. You are logged in.") }
-                                    .onFailure { errorMessage = it.message ?: "Sign up failed." }
+                                    .onSuccess { onAuthSuccess(msgAccountCreated) }
+                                    .onFailure { errorMessage = it.message ?: errSignUpFailed }
                                 isLoading = false
                             }
                         },
@@ -143,7 +153,7 @@ fun AuthScreen(
                         modifier = Modifier.weight(1f),
                         colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1E3A8A))
                     ) {
-                        Text("Sign Up")
+                        Text(stringResource(R.string.btn_sign_up))
                     }
                 }
             }
