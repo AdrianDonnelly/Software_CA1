@@ -32,7 +32,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.carparts.data.remote.SupaBaseClient
+import com.example.carparts.data.remote.ApiClient
 import kotlinx.coroutines.launch
 
 @Composable
@@ -144,7 +144,7 @@ internal fun AdminAddVehicleContent(
                         put("Category", category.trim())
                         put("ImageUrl", imageUrl.trim())
                     }
-                    SupaBaseClient.insertVehicle(vehicleData)
+                    ApiClient.insertVehicle(vehicleData)
                         .onSuccess {
                             onVehicleAdded("Vehicle \"${make.trim()} ${model.trim()}\" added successfully.")
                             make = ""; model = ""; year = ""; engineType = ""; category = ""; imageUrl = ""

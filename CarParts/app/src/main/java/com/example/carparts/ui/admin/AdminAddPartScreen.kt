@@ -38,7 +38,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.carparts.data.remote.SupaBaseClient
+import com.example.carparts.data.remote.ApiClient
 import com.example.carparts.util.getFirstNonBlank
 import kotlinx.coroutines.launch
 
@@ -75,7 +75,7 @@ internal fun AdminAddPartContent(
     val scope = rememberCoroutineScope()
 
     LaunchedEffect(Unit) {
-        SupaBaseClient.fetchParts().onSuccess { parts ->
+        ApiClient.fetchParts().onSuccess { parts ->
             categoryOptions = parts
                 .mapNotNull { it.getFirstNonBlank("Category", "category") }
                 .filter { it.isNotBlank() }.distinct().sorted()
@@ -90,7 +90,7 @@ internal fun AdminAddPartContent(
                 .filter { it.isNotBlank() }
                 .toSet()
         }
-        SupaBaseClient.fetchVehicles().onSuccess { vehicles = it }
+        ApiClient.fetchVehicles().onSuccess { vehicles = it }
     }
 
     val makeOptions = vehicles
@@ -247,7 +247,7 @@ internal fun AdminAddPartContent(
                         put("ImageUrl", imageUrl.trim())
                         put("VehicleId", vehicleId.trim())
                     }
-                    SupaBaseClient.insertPart(partData)
+                    ApiClient.insertPart(partData)
                         .onSuccess {
                             onPartAdded("Part \"${name.trim()}\" added successfully.")
                             if (trimmedPartNumber.isNotBlank()) {
