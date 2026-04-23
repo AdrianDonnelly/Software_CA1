@@ -29,9 +29,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.carparts.R
 import com.example.carparts.data.remote.ApiClient
 import kotlinx.coroutines.launch
 
@@ -52,6 +55,20 @@ internal fun AdminAddVehicleContent(
     var errorMessage by remember { mutableStateOf<String?>(null) }
 
     val scope = rememberCoroutineScope()
+    val context = LocalContext.current
+
+    val strAddVehicle = stringResource(R.string.btn_add_vehicle)
+    val strCdBack = stringResource(R.string.cd_back)
+    val strMakeRequired = stringResource(R.string.field_make_required)
+    val strModelRequired = stringResource(R.string.field_model_required)
+    val strYear = stringResource(R.string.field_year)
+    val strEngineType = stringResource(R.string.field_engine_type)
+    val strCategory = stringResource(R.string.field_category)
+    val strImageUrl = stringResource(R.string.field_image_url)
+    val strAdding = stringResource(R.string.btn_adding)
+    val strBack = stringResource(R.string.btn_back)
+    val errMakeModelRequired = stringResource(R.string.error_make_model_required)
+    val errAddVehicleFailed = stringResource(R.string.error_add_vehicle_failed)
 
     Column(
         modifier = Modifier
@@ -67,12 +84,12 @@ internal fun AdminAddVehicleContent(
             IconButton(onClick = onBack) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = "Back",
+                    contentDescription = strCdBack,
                     tint = Color(0xFF1E3A8A)
                 )
             }
             Text(
-                text = "Add Vehicle",
+                text = strAddVehicle,
                 fontSize = 22.sp,
                 fontWeight = FontWeight.ExtraBold,
                 color = Color(0xFF1E3A8A)
@@ -84,42 +101,42 @@ internal fun AdminAddVehicleContent(
         TextField(
             value = make,
             onValueChange = { make = it; errorMessage = null },
-            label = { Text("Make *") },
+            label = { Text(strMakeRequired) },
             singleLine = true,
             modifier = Modifier.fillMaxWidth()
         )
         TextField(
             value = model,
             onValueChange = { model = it; errorMessage = null },
-            label = { Text("Model *") },
+            label = { Text(strModelRequired) },
             singleLine = true,
             modifier = Modifier.fillMaxWidth()
         )
         TextField(
             value = year,
             onValueChange = { year = it },
-            label = { Text("Year") },
+            label = { Text(strYear) },
             singleLine = true,
             modifier = Modifier.fillMaxWidth()
         )
         TextField(
             value = engineType,
             onValueChange = { engineType = it },
-            label = { Text("Engine Type") },
+            label = { Text(strEngineType) },
             singleLine = true,
             modifier = Modifier.fillMaxWidth()
         )
         TextField(
             value = category,
             onValueChange = { category = it },
-            label = { Text("Category") },
+            label = { Text(strCategory) },
             singleLine = true,
             modifier = Modifier.fillMaxWidth()
         )
         TextField(
             value = imageUrl,
             onValueChange = { imageUrl = it },
-            label = { Text("Image URL") },
+            label = { Text(strImageUrl) },
             singleLine = true,
             modifier = Modifier.fillMaxWidth()
         )
@@ -131,7 +148,7 @@ internal fun AdminAddVehicleContent(
         Button(
             onClick = {
                 if (make.isBlank() || model.isBlank()) {
-                    errorMessage = "Make and Model are required."
+                    errorMessage = errMakeModelRequired
                     return@Button
                 }
                 isLoading = true
@@ -146,21 +163,21 @@ internal fun AdminAddVehicleContent(
                     }
                     ApiClient.insertVehicle(vehicleData)
                         .onSuccess {
-                            onVehicleAdded("Vehicle \"${make.trim()} ${model.trim()}\" added successfully.")
+                            onVehicleAdded(context.getString(R.string.msg_vehicle_added, make.trim(), model.trim()))
                             make = ""; model = ""; year = ""; engineType = ""; category = ""; imageUrl = ""
                         }
-                        .onFailure { errorMessage = it.message ?: "Failed to add vehicle." }
+                        .onFailure { errorMessage = it.message ?: errAddVehicleFailed }
                     isLoading = false
                 }
             },
             enabled = !isLoading,
             modifier = Modifier.fillMaxWidth()
         ) {
-            Text(if (isLoading) "Adding..." else "Add Vehicle")
+            Text(if (isLoading) strAdding else strAddVehicle)
         }
 
         TextButton(onClick = onBack, modifier = Modifier.fillMaxWidth()) {
-            Text("Back")
+            Text(strBack)
         }
 
         Spacer(modifier = Modifier.height(16.dp))

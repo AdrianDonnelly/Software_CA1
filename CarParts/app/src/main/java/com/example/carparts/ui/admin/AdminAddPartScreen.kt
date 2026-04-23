@@ -35,9 +35,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.carparts.R
 import com.example.carparts.data.remote.ApiClient
 import com.example.carparts.util.getFirstNonBlank
 import kotlinx.coroutines.launch
@@ -73,6 +76,25 @@ internal fun AdminAddPartContent(
     var selectedModelDisplay by remember { mutableStateOf("") }
 
     val scope = rememberCoroutineScope()
+    val context = LocalContext.current
+
+    val strAddPart = stringResource(R.string.admin_add_part_title)
+    val strCdBack = stringResource(R.string.cd_back)
+    val strNameRequired = stringResource(R.string.field_name_required)
+    val strPrice = stringResource(R.string.field_price)
+    val strPartNumber = stringResource(R.string.field_part_number)
+    val strManufacturer = stringResource(R.string.field_manufacturer)
+    val strCategory = stringResource(R.string.field_category)
+    val strCondition = stringResource(R.string.field_condition)
+    val strStockQuantity = stringResource(R.string.field_stock_quantity)
+    val strImageUrl = stringResource(R.string.field_image_url)
+    val strVehicleMake = stringResource(R.string.field_vehicle_make)
+    val strVehicleModel = stringResource(R.string.field_vehicle_model)
+    val strDescription = stringResource(R.string.field_description)
+    val strAdding = stringResource(R.string.btn_adding)
+    val strBack = stringResource(R.string.btn_back)
+    val errNameRequired = stringResource(R.string.error_name_required)
+    val errAddPartFailed = stringResource(R.string.error_add_part_failed)
 
     LaunchedEffect(Unit) {
         ApiClient.fetchParts().onSuccess { parts ->
@@ -121,12 +143,12 @@ internal fun AdminAddPartContent(
             IconButton(onClick = onBack) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = "Back",
+                    contentDescription = strCdBack,
                     tint = Color(0xFF1E3A8A)
                 )
             }
             Text(
-                text = "Add Part",
+                text = strAddPart,
                 fontSize = 22.sp,
                 fontWeight = FontWeight.ExtraBold,
                 color = Color(0xFF1E3A8A)
@@ -138,38 +160,38 @@ internal fun AdminAddPartContent(
         TextField(
             value = name,
             onValueChange = { name = it; errorMessage = null },
-            label = { Text("Name *") },
+            label = { Text(strNameRequired) },
             singleLine = true,
             modifier = Modifier.fillMaxWidth()
         )
         TextField(
             value = price,
             onValueChange = { price = it; errorMessage = null },
-            label = { Text("Price") },
+            label = { Text(strPrice) },
             singleLine = true,
             modifier = Modifier.fillMaxWidth()
         )
         TextField(
             value = partNumber,
             onValueChange = { partNumber = it },
-            label = { Text("Part Number / SKU") },
+            label = { Text(strPartNumber) },
             singleLine = true,
             modifier = Modifier.fillMaxWidth()
         )
         AdminDropdownField(
-            label = "Manufacturer",
+            label = strManufacturer,
             value = manufacturer,
             onValueChange = { manufacturer = it },
             options = manufacturerOptions
         )
         AdminDropdownField(
-            label = "Category",
+            label = strCategory,
             value = category,
             onValueChange = { category = it },
             options = categoryOptions
         )
         AdminDropdownField(
-            label = "Condition",
+            label = strCondition,
             value = condition,
             onValueChange = { condition = it },
             options = conditionOptions
@@ -177,19 +199,19 @@ internal fun AdminAddPartContent(
         TextField(
             value = stockQuantity,
             onValueChange = { stockQuantity = it },
-            label = { Text("Stock Quantity") },
+            label = { Text(strStockQuantity) },
             singleLine = true,
             modifier = Modifier.fillMaxWidth()
         )
         TextField(
             value = imageUrl,
             onValueChange = { imageUrl = it },
-            label = { Text("Image URL") },
+            label = { Text(strImageUrl) },
             singleLine = true,
             modifier = Modifier.fillMaxWidth()
         )
         AdminDropdownField(
-            label = "Vehicle Make",
+            label = strVehicleMake,
             value = selectedMake,
             onValueChange = {
                 selectedMake = it
@@ -199,7 +221,7 @@ internal fun AdminAddPartContent(
             options = makeOptions
         )
         AdminLabeledDropdownField(
-            label = "Vehicle Model",
+            label = strVehicleModel,
             displayValue = selectedModelDisplay,
             onValueChange = { display, id ->
                 selectedModelDisplay = display
@@ -211,7 +233,7 @@ internal fun AdminAddPartContent(
         TextField(
             value = description,
             onValueChange = { description = it },
-            label = { Text("Description") },
+            label = { Text(strDescription) },
             minLines = 3,
             modifier = Modifier.fillMaxWidth()
         )
@@ -223,14 +245,14 @@ internal fun AdminAddPartContent(
         Button(
             onClick = {
                 if (name.isBlank()) {
-                    errorMessage = "Name is required."
+                    errorMessage = errNameRequired
                     return@Button
                 }
                 val trimmedPartNumber = partNumber.trim()
                 if (trimmedPartNumber.isNotBlank() &&
                     existingPartNumbers.any { it.equals(trimmedPartNumber, ignoreCase = true) }
                 ) {
-                    errorMessage = "Part Number \"$trimmedPartNumber\" already exists. Use a unique SKU."
+                    errorMessage = context.getString(R.string.error_part_number_exists, trimmedPartNumber)
                     return@Button
                 }
                 isLoading = true
@@ -249,7 +271,7 @@ internal fun AdminAddPartContent(
                     }
                     ApiClient.insertPart(partData)
                         .onSuccess {
-                            onPartAdded("Part \"${name.trim()}\" added successfully.")
+                            onPartAdded(context.getString(R.string.msg_part_added, name.trim()))
                             if (trimmedPartNumber.isNotBlank()) {
                                 existingPartNumbers = existingPartNumbers + trimmedPartNumber
                             }
@@ -258,18 +280,18 @@ internal fun AdminAddPartContent(
                             description = ""; imageUrl = ""
                             vehicleId = ""; selectedMake = ""; selectedModelDisplay = ""
                         }
-                        .onFailure { errorMessage = it.message ?: "Failed to add part." }
+                        .onFailure { errorMessage = it.message ?: errAddPartFailed }
                     isLoading = false
                 }
             },
             enabled = !isLoading,
             modifier = Modifier.fillMaxWidth()
         ) {
-            Text(if (isLoading) "Adding..." else "Add Part")
+            Text(if (isLoading) strAdding else strAddPart)
         }
 
         TextButton(onClick = onBack, modifier = Modifier.fillMaxWidth()) {
-            Text("Back")
+            Text(strBack)
         }
 
         Spacer(modifier = Modifier.height(16.dp))

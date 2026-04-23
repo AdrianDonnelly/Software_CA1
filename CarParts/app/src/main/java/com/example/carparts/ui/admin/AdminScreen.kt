@@ -6,9 +6,9 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Card
@@ -26,9 +26,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.carparts.R
 
 internal enum class AdminView { MENU, ADD_PART, ADD_VEHICLE }
 
@@ -80,12 +82,12 @@ private fun AdminMenuContent(
             IconButton(onClick = onBack) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = "Back",
+                    contentDescription = stringResource(R.string.cd_back),
                     tint = Color(0xFF1E3A8A)
                 )
             }
             Text(
-                text = "Admin Panel",
+                text = stringResource(R.string.admin_panel_title),
                 fontSize = 22.sp,
                 fontWeight = FontWeight.ExtraBold,
                 color = Color(0xFF1E3A8A)
@@ -101,8 +103,13 @@ private fun AdminMenuContent(
             elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
         ) {
             Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                Text("Add Part", fontWeight = FontWeight.Bold, fontSize = 18.sp, color = Color(0xFF111827))
-                Text("Add a new car part to the catalogue", color = Color(0xFF4B5563))
+                Text(
+                    stringResource(R.string.admin_add_part_title),
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 18.sp,
+                    color = Color(0xFF111827)
+                )
+                Text(stringResource(R.string.admin_add_part_desc), color = Color(0xFF4B5563))
             }
         }
 
@@ -113,15 +120,20 @@ private fun AdminMenuContent(
             elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
         ) {
             Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                Text("Add Vehicle", fontWeight = FontWeight.Bold, fontSize = 18.sp, color = Color(0xFF111827))
-                Text("Add a new vehicle make and model", color = Color(0xFF4B5563))
+                Text(
+                    stringResource(R.string.admin_add_vehicle_title),
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 18.sp,
+                    color = Color(0xFF111827)
+                )
+                Text(stringResource(R.string.admin_add_vehicle_desc), color = Color(0xFF4B5563))
             }
         }
 
         Spacer(modifier = Modifier.weight(1f))
 
         TextButton(onClick = onBack, modifier = Modifier.fillMaxWidth()) {
-            Text("Back to Parts")
+            Text(stringResource(R.string.btn_back_to_parts))
         }
 
         Spacer(modifier = Modifier.height(16.dp))
