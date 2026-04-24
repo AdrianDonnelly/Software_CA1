@@ -52,6 +52,24 @@ object ApiClient {
         conn.disconnect()
     }
 
+    private suspend fun put(path: String, body: String) = withContext(Dispatchers.IO) {
+        val conn = URL("$BASE_URL$path").openConnection() as HttpURLConnection
+        conn.requestMethod = "PUT"
+        conn.setRequestProperty("Content-Type", "application/json; charset=utf-8")
+        conn.setRequestProperty("Accept", "application/json")
+        conn.connectTimeout = 15_000
+        conn.readTimeout = 15_000
+        conn.doOutput = true
+        conn.outputStream.use { it.write(body.toByteArray(Charsets.UTF_8)) }
+        val code = conn.responseCode
+        if (code !in 200..299) {
+            val err = conn.errorStream?.bufferedReader()?.readText() ?: "HTTP $code"
+            conn.disconnect()
+            error(err)
+        }
+        conn.disconnect()
+    }
+
     // Flatten a JSON object to Map<String, String>, skipping nested objects/arrays and nulls.
     private fun JsonObject.toFlatStringMap(): Map<String, String> =
         entries
@@ -104,6 +122,30 @@ object ApiClient {
             vehicleData["ImageUrl"]?.takeIf { it.isNotBlank() }?.let { put("imageUrl", it) }
         }.toString()
         post("/api/Vehicles", body)
+        Result.success(Unit)
+    } catch (e: Exception) {
+        Result.failure(e)
+    }
+
+    suspend fun checkoutParts(items: List<Pair<Map<String, String>, Int>>): Result<Unit> = try {
+        items.forEach { (part, quantity) ->
+            if (quantity <= 0) return@forEach
+            val partId = part.entries.firstOrNull { it.key.equals("PartId", ignoreCase = true) }?.value
+                ?: part.entries.firstOrNull { it.key.equals("id", ignoreCase = true) }?.value
+                ?: error("Missing PartId for checkout item.")
+            val currentStock = part.entries.firstOrNull {
+                it.key.equals("StockQuantity", ignoreCase = true) ||
+                    it.key.equals("stockquantity", ignoreCase = true)
+            }?.value?.toIntOrNull() ?: 0
+            val nextStock = (currentStock - quantity).coerceAtLeast(0)
+
+            val body = buildJsonObject {
+                put("partId", partId.toIntOrNull() ?: error("Invalid PartId: $partId"))
+                put("stockQuantity", nextStock)
+            }.toString()
+
+            put("/api/AutoParts/$partId", body)
+        }
         Result.success(Unit)
     } catch (e: Exception) {
         Result.failure(e)

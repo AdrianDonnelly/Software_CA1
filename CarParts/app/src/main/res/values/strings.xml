@@ -71,7 +71,11 @@
     <string name="label_subtotal">Subtotal: $%1$s</string>
     <string name="btn_checkout">Checkout</string>
     <string name="btn_back_to_parts">Back to Parts</string>
-    <string name="msg_checkout_test">Checkout clicked. No stock updates yet.</string>
+    <string name="msg_checkout_failed">Checkout failed. Please try again.</string>
+    <string name="msg_checkout_failed_with_reason">Checkout failed: %1$s</string>
+    <string name="checkout_thanks_title">Thanks for your order!</string>
+    <string name="checkout_redirect_message">You will be redirected to the main page shortly.</string>
+    <string name="btn_continue_shopping">Back to Home</string>
 
     <!-- Profile -->
     <string name="section_account_details">Account Details</string>

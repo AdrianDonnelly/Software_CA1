@@ -34,7 +34,7 @@ fun CartScreen(
     innerPadding: PaddingValues,
     items: List<CartItem>,
     onBackToParts: () -> Unit,
-    onCheckoutTest: () -> Unit,
+    onCheckout: () -> Unit,
     onIncreaseItem: (String) -> Unit,
     onDecreaseItem: (String) -> Unit
 ) {
@@ -109,7 +109,7 @@ fun CartScreen(
             color = Color(0xFF111827)
         )
         Button(
-            onClick = onCheckoutTest,
+            onClick = onCheckout,
             enabled = items.isNotEmpty(),
             modifier = Modifier.fillMaxWidth()
         ) {

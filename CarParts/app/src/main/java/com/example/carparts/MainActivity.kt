@@ -18,11 +18,14 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.LocalContext
 import com.example.carparts.data.remote.AuthRepository
+import com.example.carparts.data.remote.ApiClient
 import com.example.carparts.ui.AuthScreen
 import com.example.carparts.ui.CarPartsTopBar
 import com.example.carparts.ui.CartScreen
 import com.example.carparts.ui.CategoryDrawer
+import com.example.carparts.ui.CheckoutSuccessScreen
 import com.example.carparts.ui.PartsScreen
 import com.example.carparts.ui.ProfileScreen
 import com.example.carparts.ui.admin.AdminScreen
@@ -54,8 +57,9 @@ class MainActivity : AppCompatActivity() {
                 val basketCount = basket.values.sumOf { it.quantity }
                 val snackbarHostState = remember { SnackbarHostState() }
                 val scope = rememberCoroutineScope()
+                val localContext = LocalContext.current
                 val msgSignedOut = stringResource(R.string.msg_signed_out)
-                val msgCheckoutTest = stringResource(R.string.msg_checkout_test)
+                val msgCheckoutFailed = stringResource(R.string.msg_checkout_failed)
                 var selectedVehicle by remember { mutableStateOf(VehiclePreferences.load(context)) }
 
                 Box(modifier = androidx.compose.ui.Modifier.fillMaxSize()) {
@@ -124,9 +128,22 @@ class MainActivity : AppCompatActivity() {
                                     innerPadding = innerPadding,
                                     items = basket.values.toList(),
                                     onBackToParts = { currentScreen = HomeScreen.PARTS },
-                                    onCheckoutTest = {
+                                    onCheckout = {
                                         scope.launch {
-                                            snackbarHostState.showSnackbar(msgCheckoutTest)
+                                            val checkoutItems = basket.values.map { it.part to it.quantity }
+                                            ApiClient.checkoutParts(checkoutItems)
+                                                .onSuccess {
+                                                    basket.clear()
+                                                    currentScreen = HomeScreen.CHECKOUT_SUCCESS
+                                                }
+                                                .onFailure { error ->
+                                                    snackbarHostState.showSnackbar(
+                                                        localContext.getString(
+                                                            R.string.msg_checkout_failed_with_reason,
+                                                            error.message ?: msgCheckoutFailed
+                                                        )
+                                                    )
+                                                }
                                         }
                                     },
                                     onIncreaseItem = { key ->
@@ -162,6 +179,10 @@ class MainActivity : AppCompatActivity() {
                                             )
                                         }
                                     }
+                                )
+                                HomeScreen.CHECKOUT_SUCCESS -> CheckoutSuccessScreen(
+                                    innerPadding = innerPadding,
+                                    onContinueShopping = { currentScreen = HomeScreen.PARTS }
                                 )
                             }
                         }
@@ -199,6 +220,7 @@ data class CartItem(
 internal enum class HomeScreen {
     PARTS,
     CART,
+    CHECKOUT_SUCCESS,
     ADMIN,
     PROFILE
 }
