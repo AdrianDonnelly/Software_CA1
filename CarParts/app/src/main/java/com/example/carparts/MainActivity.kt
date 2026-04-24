@@ -137,10 +137,15 @@ class MainActivity : AppCompatActivity() {
                                                     currentScreen = HomeScreen.CHECKOUT_SUCCESS
                                                 }
                                                 .onFailure { error ->
+                                                    val reason = error.message
+                                                        ?.trim()
+                                                        ?.takeIf { it.isNotBlank() }
+                                                        ?: msgCheckoutFailed
                                                     snackbarHostState.showSnackbar(
-                                                        localContext.getString(
+                                                        if (reason == msgCheckoutFailed) reason
+                                                        else localContext.getString(
                                                             R.string.msg_checkout_failed_with_reason,
-                                                            error.message ?: msgCheckoutFailed
+                                                            reason
                                                         )
                                                     )
                                                 }
