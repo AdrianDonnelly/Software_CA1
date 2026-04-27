@@ -116,6 +116,19 @@
     <string name="admin_add_part_desc">Cuir páirt charr nua leis an gcatalóg</string>
     <string name="admin_add_vehicle_title">Cuir Feithicil Leis</string>
     <string name="admin_add_vehicle_desc">Cuir déantóir agus samhail feithicle nua leis</string>
+    <string name="admin_delete_part_title">Scrios Páirt</string>
+    <string name="admin_delete_part_desc">Bain páirt ón gcatalóg</string>
+    <string name="admin_delete_vehicle_title">Scrios Feithicil</string>
+    <string name="admin_delete_vehicle_desc">Bain feithicil ón mbunachar sonraí</string>
+    <string name="admin_delete_confirm_title">Scrios %1$s?</string>
+    <string name="admin_delete_confirm_message">Ní féidir é seo a chur ar ceal.</string>
+    <string name="btn_delete">Scrios</string>
+    <string name="btn_deleting">Ag scriosadh…</string>
+    <string name="msg_part_deleted">Scriosadh \"%1$s\" go rathúil.</string>
+    <string name="msg_vehicle_deleted">Scriosadh \"%1$s\" go rathúil.</string>
+    <string name="error_delete_part_failed">Theip ar an bpáirt a scriosadh.</string>
+    <string name="error_delete_vehicle_failed">Theip ar an bhfeithicil a scriosadh.</string>
+    <string name="no_vehicles_found">Níor aimsíodh feithiclí ar bith.</string>
     <string name="cd_back">Ar Ais</string>
     <string name="btn_back">Ar Ais</string>
 

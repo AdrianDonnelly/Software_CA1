@@ -32,7 +32,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.carparts.R
 
-internal enum class AdminView { MENU, ADD_PART, ADD_VEHICLE }
+internal enum class AdminView { MENU, ADD_PART, ADD_VEHICLE, DELETE_PART, DELETE_VEHICLE }
 
 @Composable
 fun AdminScreen(
@@ -47,7 +47,9 @@ fun AdminScreen(
             innerPadding = innerPadding,
             onBack = onBack,
             onAddPart = { adminView = AdminView.ADD_PART },
-            onAddVehicle = { adminView = AdminView.ADD_VEHICLE }
+            onAddVehicle = { adminView = AdminView.ADD_VEHICLE },
+            onDeletePart = { adminView = AdminView.DELETE_PART },
+            onDeleteVehicle = { adminView = AdminView.DELETE_VEHICLE }
         )
         AdminView.ADD_PART -> AdminAddPartContent(
             innerPadding = innerPadding,
@@ -59,6 +61,16 @@ fun AdminScreen(
             onBack = { adminView = AdminView.MENU },
             onVehicleAdded = onMessage
         )
+        AdminView.DELETE_PART -> AdminDeletePartContent(
+            innerPadding = innerPadding,
+            onBack = { adminView = AdminView.MENU },
+            onMessage = onMessage
+        )
+        AdminView.DELETE_VEHICLE -> AdminDeleteVehicleContent(
+            innerPadding = innerPadding,
+            onBack = { adminView = AdminView.MENU },
+            onMessage = onMessage
+        )
     }
 }
 
@@ -67,7 +79,9 @@ private fun AdminMenuContent(
     innerPadding: PaddingValues,
     onBack: () -> Unit,
     onAddPart: () -> Unit,
-    onAddVehicle: () -> Unit
+    onAddVehicle: () -> Unit,
+    onDeletePart: () -> Unit,
+    onDeleteVehicle: () -> Unit
 ) {
     Column(
         modifier = Modifier
@@ -127,6 +141,40 @@ private fun AdminMenuContent(
                     color = Color(0xFF111827)
                 )
                 Text(stringResource(R.string.admin_add_vehicle_desc), color = Color(0xFF4B5563))
+            }
+        }
+
+        Card(
+            onClick = onDeletePart,
+            modifier = Modifier.fillMaxWidth(),
+            colors = CardDefaults.cardColors(containerColor = Color(0xFFFEF2F2)),
+            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        ) {
+            Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Text(
+                    stringResource(R.string.admin_delete_part_title),
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 18.sp,
+                    color = Color(0xFFDC2626)
+                )
+                Text(stringResource(R.string.admin_delete_part_desc), color = Color(0xFF4B5563))
+            }
+        }
+
+        Card(
+            onClick = onDeleteVehicle,
+            modifier = Modifier.fillMaxWidth(),
+            colors = CardDefaults.cardColors(containerColor = Color(0xFFFEF2F2)),
+            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        ) {
+            Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Text(
+                    stringResource(R.string.admin_delete_vehicle_title),
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 18.sp,
+                    color = Color(0xFFDC2626)
+                )
+                Text(stringResource(R.string.admin_delete_vehicle_desc), color = Color(0xFF4B5563))
             }
         }
 

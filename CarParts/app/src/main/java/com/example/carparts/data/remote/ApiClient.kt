@@ -202,6 +202,36 @@ object ApiClient {
         Result.failure(e)
     }
 
+    private suspend fun delete(path: String) = withContext(Dispatchers.IO) {
+        val conn = URL("$BASE_URL$path").openConnection() as HttpURLConnection
+        conn.requestMethod = "DELETE"
+        conn.setRequestProperty("Accept", "application/json")
+        currentToken()?.let { conn.setRequestProperty("Authorization", "Bearer $it") }
+        conn.connectTimeout = 15_000
+        conn.readTimeout = 15_000
+        val code = conn.responseCode
+        if (code !in 200..299) {
+            val err = conn.errorStream?.bufferedReader()?.readText() ?: "HTTP $code"
+            conn.disconnect()
+            error(parseErrorMessage(code, err))
+        }
+        conn.disconnect()
+    }
+
+    suspend fun deletePart(partId: String): Result<Unit> = try {
+        delete("/api/AutoParts/$partId")
+        Result.success(Unit)
+    } catch (e: Exception) {
+        Result.failure(e)
+    }
+
+    suspend fun deleteVehicle(vehicleId: String): Result<Unit> = try {
+        delete("/api/Vehicles/$vehicleId")
+        Result.success(Unit)
+    } catch (e: Exception) {
+        Result.failure(e)
+    }
+
     suspend fun checkoutParts(items: List<Pair<Map<String, String>, Int>>): Result<Unit> = try {
         items.forEach { (part, quantity) ->
             if (quantity <= 0) return@forEach

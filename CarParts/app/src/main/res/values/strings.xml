@@ -116,6 +116,19 @@
     <string name="admin_add_part_desc">Add a new car part to the catalogue</string>
     <string name="admin_add_vehicle_title">Add Vehicle</string>
     <string name="admin_add_vehicle_desc">Add a new vehicle make and model</string>
+    <string name="admin_delete_part_title">Delete Part</string>
+    <string name="admin_delete_part_desc">Remove a part from the catalogue</string>
+    <string name="admin_delete_vehicle_title">Delete Vehicle</string>
+    <string name="admin_delete_vehicle_desc">Remove a vehicle from the database</string>
+    <string name="admin_delete_confirm_title">Delete %1$s?</string>
+    <string name="admin_delete_confirm_message">This cannot be undone.</string>
+    <string name="btn_delete">Delete</string>
+    <string name="btn_deleting">Deleting…</string>
+    <string name="msg_part_deleted">Part \"%1$s\" deleted.</string>
+    <string name="msg_vehicle_deleted">Vehicle \"%1$s\" deleted.</string>
+    <string name="error_delete_part_failed">Failed to delete part.</string>
+    <string name="error_delete_vehicle_failed">Failed to delete vehicle.</string>
+    <string name="no_vehicles_found">No vehicles found in the database.</string>
     <string name="cd_back">Back</string>
     <string name="btn_back">Back</string>
 
