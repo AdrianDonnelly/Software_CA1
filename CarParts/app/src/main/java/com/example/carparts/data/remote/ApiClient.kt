@@ -146,17 +146,49 @@ object ApiClient {
             .associate { (k, v) -> k to ((v as JsonPrimitive).contentOrNull ?: "") }
             .filter { it.value.isNotBlank() }
 
+    private suspend fun fetchJsonArrayWithFallback(paths: List<String>): JsonArray {
+        var lastError: Throwable? = null
+
+        for (path in paths) {
+            try {
+                val arr = Json.parseToJsonElement(get(path)) as? JsonArray
+                if (arr != null) return arr
+            } catch (e: Exception) {
+                lastError = e
+            }
+        }
+
+        for (path in paths) {
+            try {
+                val arr = Json.parseToJsonElement(getAuthenticated(path)) as? JsonArray
+                if (arr != null) return arr
+            } catch (e: Exception) {
+                lastError = e
+            }
+        }
+
+        throw (lastError ?: IllegalStateException("Unable to load data from API."))
+    }
+
     suspend fun fetchParts(): Result<List<Map<String, String>>> = try {
-        val arr = Json.parseToJsonElement(get("/api/AutoParts")) as? JsonArray
-            ?: JsonArray(emptyList())
+        val arr = fetchJsonArrayWithFallback(
+            listOf(
+                "/api/AutoParts",
+                "/api/autoparts"
+            )
+        )
         Result.success(arr.mapNotNull { (it as? JsonObject)?.toFlatStringMap() })
     } catch (e: Exception) {
         Result.failure(e)
     }
 
     suspend fun fetchVehicles(): Result<List<Map<String, String>>> = try {
-        val arr = Json.parseToJsonElement(get("/api/Vehicles")) as? JsonArray
-            ?: JsonArray(emptyList())
+        val arr = fetchJsonArrayWithFallback(
+            listOf(
+                "/api/Vehicles",
+                "/api/vehicles"
+            )
+        )
         Result.success(arr.mapNotNull { (it as? JsonObject)?.toFlatStringMap() })
     } catch (e: Exception) {
         Result.failure(e)

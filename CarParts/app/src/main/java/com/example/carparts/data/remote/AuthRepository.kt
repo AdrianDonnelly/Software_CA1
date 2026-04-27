@@ -7,13 +7,32 @@ import kotlinx.serialization.json.jsonPrimitive
 
 object AuthRepository {
 
+    private fun Throwable.readableAuthError(defaultMessage: String): String {
+        val msg = message?.trim().orEmpty()
+        val lower = msg.lowercase()
+        if (msg.contains("404", ignoreCase = true) ||
+            msg.contains("Not Found", ignoreCase = true)
+        ) {
+            return "Auth endpoint not found. Check SUPABASE_URL in local.properties."
+        }
+        if (lower.contains("unable to resolve host") || lower.contains("failed to connect")) {
+            return "Network error. Check emulator internet and try again."
+        }
+        if (msg.contains("401", ignoreCase = true) || lower.contains("invalid api key")) {
+            return "Auth key/config error. Check SUPABASE_ANON_KEY in local.properties."
+        }
+        if (msg.isBlank()) return defaultMessage
+        return msg
+    }
+
     suspend fun signUp(email: String, password: String): Result<Unit> {
         return runCatching {
             SupaBaseClient.client.auth.signUpWith(Email) {
                 this.email = email
                 this.password = password
             }
-        }
+        }.map { Unit }
+            .mapError { it.readableAuthError("Sign up failed.") }
     }
 
     suspend fun signIn(email: String, password: String): Result<Unit> {
@@ -22,7 +41,15 @@ object AuthRepository {
                 this.email = email
                 this.password = password
             }
-        }
+        }.map { Unit }
+            .mapError { it.readableAuthError("Sign in failed.") }
+    }
+
+    private inline fun <T> Result<T>.mapError(mapper: (Throwable) -> String): Result<T> {
+        return fold(
+            onSuccess = { Result.success(it) },
+            onFailure = { Result.failure(IllegalStateException(mapper(it), it)) }
+        )
     }
 
     suspend fun signOut(): Result<Unit> {
