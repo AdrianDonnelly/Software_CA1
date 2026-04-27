@@ -37,7 +37,7 @@ object AuthRepository {
 
     fun isAdmin(): Boolean {
         val user = SupaBaseClient.client.auth.currentUserOrNull() ?: return false
-        val role = user.appMetadata["role"]?.jsonPrimitive?.contentOrNull
+        val role = user.appMetadata?.get("role")?.jsonPrimitive?.contentOrNull
         return role == "admin"
     }
 

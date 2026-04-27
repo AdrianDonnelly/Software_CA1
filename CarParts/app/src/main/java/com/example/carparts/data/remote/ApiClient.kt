@@ -1,6 +1,7 @@
 package com.example.carparts.data.remote
 
 import com.example.carparts.util.getFirstNonBlank
+import io.github.jan.supabase.auth.auth
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
@@ -101,7 +102,7 @@ object ApiClient {
         }
         val body = conn.inputStream.bufferedReader().readText()
         conn.disconnect()
-        body
+        return body
     }
 
     private fun currentToken(): String? =
@@ -145,7 +146,6 @@ object ApiClient {
         conn.disconnect()
     }
 
-    // Flatten a JSON object to Map<String, String>, skipping nested objects/arrays and nulls.
     private fun JsonObject.toFlatStringMap(): Map<String, String> =
         entries
             .filter { (_, v) -> v is JsonPrimitive }
