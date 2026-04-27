@@ -1,5 +1,6 @@
 package com.example.carparts.ui
 
+import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -134,7 +135,10 @@ fun AuthScreen(
                             scope.launch {
                                 AuthRepository.signIn(email.trim(), password)
                                     .onSuccess { onAuthSuccess(msgSignedIn) }
-                                    .onFailure { errorMessage = it.message ?: errSignInFailed }
+                                    .onFailure {
+                                        Log.e("CarPartsAuth", "Sign in failed", it)
+                                        errorMessage = it.message ?: errSignInFailed
+                                    }
                                 isLoading = false
                             }
                         },
@@ -151,7 +155,10 @@ fun AuthScreen(
                             scope.launch {
                                 AuthRepository.signUp(email.trim(), password)
                                     .onSuccess { onAuthSuccess(msgAccountCreated) }
-                                    .onFailure { errorMessage = it.message ?: errSignUpFailed }
+                                    .onFailure {
+                                        Log.e("CarPartsAuth", "Sign up failed", it)
+                                        errorMessage = it.message ?: errSignUpFailed
+                                    }
                                 isLoading = false
                             }
                         },
