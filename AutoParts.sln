@@ -2,6 +2,8 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AutoParts", "AutoParts\AutoParts.csproj", "{A13DC8E9-D6F7-48A1-8882-768070ABFD12}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AutoParts.Tests", "AutoParts\AutoParts.Tests\AutoParts.Tests.csproj", "{B2F1A3C4-5D6E-7F8A-9B0C-1D2E3F4A5B6C}"
+EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".github", ".github", "{59DAF6C2-1492-4864-A286-78B646EB214E}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "workflows", "workflows", "{BFD03150-9BA4-4EF4-B165-A4ACA8BEBFB5}"
@@ -16,6 +18,10 @@ Global
 		{A13DC8E9-D6F7-48A1-8882-768070ABFD12}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A13DC8E9-D6F7-48A1-8882-768070ABFD12}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A13DC8E9-D6F7-48A1-8882-768070ABFD12}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B2F1A3C4-5D6E-7F8A-9B0C-1D2E3F4A5B6C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B2F1A3C4-5D6E-7F8A-9B0C-1D2E3F4A5B6C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B2F1A3C4-5D6E-7F8A-9B0C-1D2E3F4A5B6C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B2F1A3C4-5D6E-7F8A-9B0C-1D2E3F4A5B6C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{BFD03150-9BA4-4EF4-B165-A4ACA8BEBFB5} = {59DAF6C2-1492-4864-A286-78B646EB214E}
