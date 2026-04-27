@@ -1,4 +1,7 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
+using System.Text.Json;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using AutoParts.Data;
 using AutoParts.Models;
@@ -14,6 +17,18 @@ public class AutoPartsController : ControllerBase
     public AutoPartsController(AutoPartsDbContext context)
     {
         _context = context;
+    }
+
+    private bool IsAdmin()
+    {
+        var appMetadata = User.FindFirst("app_metadata")?.Value;
+        if (appMetadata == null) return false;
+        try
+        {
+            var metadata = JsonSerializer.Deserialize<JsonElement>(appMetadata);
+            return metadata.TryGetProperty("role", out var role) && role.GetString() == "admin";
+        }
+        catch { return false; }
     }
 
     // GET: api/AutoParts
@@ -34,9 +49,7 @@ public class AutoPartsController : ControllerBase
             .FirstOrDefaultAsync(p => p.PartId == id);
 
         if (autoPart == null)
-        {
             return NotFound();
-        }
 
         return autoPart;
     }
@@ -46,15 +59,13 @@ public class AutoPartsController : ControllerBase
     public async Task<ActionResult<IEnumerable<AutoPart>>> SearchParts([FromQuery] string query)
     {
         if (string.IsNullOrWhiteSpace(query))
-        {
             return await GetAutoParts();
-        }
 
         var parts = await _context.AutoParts
             .Include(p => p.Vehicle)
-            .Where(p => p.Name.Contains(query) || 
-                       p.PartNumber.Contains(query) ||
-                       p.Manufacturer.Contains(query))
+            .Where(p => p.Name.Contains(query) ||
+                        p.PartNumber.Contains(query) ||
+                        p.Manufacturer.Contains(query))
             .ToListAsync();
 
         return parts;
@@ -94,24 +105,27 @@ public class AutoPartsController : ControllerBase
         return parts;
     }
 
-    // POST: api/AutoParts
+    // POST: api/AutoParts — admin only
     [HttpPost]
+    [Authorize]
     public async Task<ActionResult<AutoPart>> PostAutoPart(AutoPart autoPart)
     {
+        if (!IsAdmin())
+            return Forbid();
+
         _context.AutoParts.Add(autoPart);
         await _context.SaveChangesAsync();
 
         return CreatedAtAction(nameof(GetAutoPart), new { id = autoPart.PartId }, autoPart);
     }
 
-    // PUT: api/AutoParts/5
+    // PUT: api/AutoParts/5 — any authenticated user (used by checkout to update stock)
     [HttpPut("{id}")]
+    [Authorize]
     public async Task<IActionResult> PutAutoPart(int id, AutoPart autoPart)
     {
         if (id != autoPart.PartId)
-        {
             return BadRequest();
-        }
 
         _context.Entry(autoPart).State = EntityState.Modified;
 
@@ -122,24 +136,24 @@ public class AutoPartsController : ControllerBase
         catch (DbUpdateConcurrencyException)
         {
             if (!AutoPartExists(id))
-            {
                 return NotFound();
-            }
             throw;
         }
 
         return NoContent();
     }
 
-    // DELETE: api/AutoParts/5
+    // DELETE: api/AutoParts/5 — admin only
     [HttpDelete("{id}")]
+    [Authorize]
     public async Task<IActionResult> DeleteAutoPart(int id)
     {
+        if (!IsAdmin())
+            return Forbid();
+
         var autoPart = await _context.AutoParts.FindAsync(id);
         if (autoPart == null)
-        {
             return NotFound();
-        }
 
         _context.AutoParts.Remove(autoPart);
         await _context.SaveChangesAsync();

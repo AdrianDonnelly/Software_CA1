@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- App -->
+    <string name="app_name">CarParts</string>
+    <string name="app_title">CarParts</string>
+
+    <!-- Auth -->
+    <string name="welcome_title">Fáilte go CarParts</string>
+    <string name="welcome_subtitle">Sínigh isteach nó cruthaigh cuntas le leanúint.</string>
+    <string name="label_email">Ríomhphost</string>
+    <string name="label_password">Pasfhocal</string>
+    <string name="btn_login">Logáil Isteach</string>
+    <string name="btn_sign_up">Cláraigh</string>
+    <string name="error_email_password_required">Tá ríomhphost agus pasfhocal ag teastáil.</string>
+    <string name="error_invalid_email">Cuir isteach ríomhphost bailí.</string>
+    <string name="error_password_too_short">Caithfidh an pasfhocal a bheith 6 carachtar ar a laghad.</string>
+    <string name="msg_signed_in">Sínithe isteach go rathúil</string>
+    <string name="msg_account_created">Cuntas cruthaithe. Tá tú logáilte isteach.</string>
+    <string name="error_sign_in_failed">Theip ar an síniú isteach.</string>
+    <string name="error_sign_up_failed">Theip ar chlárú.</string>
+
+    <!-- Top Bar -->
+    <string name="cd_browse_categories">Brabhsáil catagóirí</string>
+    <string name="cd_open_cart">Oscail ciseán</string>
+    <string name="cd_admin_panel">Painéal riaracháin</string>
+    <string name="cd_view_profile">Féach ar phróifíl</string>
+
+    <!-- Category Drawer -->
+    <string name="shop_by_category">Siopadóireacht de réir Catagóire</string>
+    <string name="all_parts">Gach Páirt</string>
+    <string name="cd_close">Dún</string>
+
+    <!-- Parts Screen -->
+    <string name="heading_parts_for_vehicle">Páirteanna do %1$s</string>
+    <string name="no_parts_found">Níor aimsíodh páirteanna ar bith.</string>
+    <string name="no_parts_in_category">Níor aimsíodh páirteanna sa chatagóir \"%1$s\".</string>
+    <string name="no_parts_for_vehicle">Níor aimsíodh páirteanna do %1$s.</string>
+    <string name="label_price_prefix">Praghas: %1$s</string>
+    <string name="label_sku_prefix">SKU: %1$s</string>
+    <string name="btn_add_to_basket">Cuir sa Chiseán</string>
+    <string name="btn_out_of_stock">As Stoc</string>
+    <string name="label_out_of_stock">As stoc</string>
+    <string name="label_low_stock">Stoc íseal (%1$d)</string>
+    <string name="label_in_stock">I stoc (%1$d)</string>
+
+    <!-- Vehicle Banner -->
+    <string name="my_vehicle">Mo Fheithicil</string>
+    <string name="btn_filter_parts">Scag Páirteanna</string>
+    <string name="btn_remove_filter">Bain Scagaire</string>
+
+    <!-- Part Details Dialog -->
+    <string name="section_product_info">Eolas Táirge</string>
+    <string name="detail_sku">SKU: %1$s</string>
+    <string name="detail_brand">Branda: %1$s</string>
+    <string name="detail_category">Catagóir: %1$s</string>
+    <string name="detail_condition">Staid: %1$s</string>
+    <string name="detail_part_id">Aitheantas Páirt: %1$s</string>
+    <string name="section_pricing_stock">Praghsáil &amp; Stoc</string>
+    <string name="detail_price">Praghas: %1$s</string>
+    <string name="section_compatibility">Comhoiriúnacht</string>
+    <string name="detail_vehicle_id">Aitheantas Feithicle: %1$s</string>
+    <string name="section_description">Cur Síos</string>
+    <string name="btn_close">Dún</string>
+    <string name="empty_row">Ró folamh</string>
+
+    <!-- Cart -->
+    <string name="cart_title">Ciseán</string>
+    <string name="cart_empty">Tá do chiseán folamh.</string>
+    <string name="label_cart_price">Praghas: %1$s</string>
+    <string name="label_qty">Cainníocht: %1$d</string>
+    <string name="label_subtotal">Fo-iomlán: $%1$s</string>
+    <string name="btn_checkout">Seiceáil Amach</string>
+    <string name="btn_back_to_parts">Ar Ais go Páirteanna</string>
+    <string name="msg_checkout_test">Brúdh ar Seiceáil Amach. Gan nuashonruithe stoic fós.</string>
+
+    <!-- Profile -->
+    <string name="section_account_details">Sonraí Cuntais</string>
+    <string name="label_account_id">Aitheantas Cuntais</string>
+    <string name="label_member_since">Ball ó</string>
+    <string name="label_last_sign_in">Síniú Isteach Deireanach</string>
+    <string name="section_my_vehicle">Mo Fheithicil</string>
+    <string name="btn_change_vehicle">Athraigh</string>
+    <string name="btn_set_vehicle">Socraigh Feithicil</string>
+    <string name="label_make">Déantóir</string>
+    <string name="label_model">Samhail</string>
+    <string name="label_year">Bliain</string>
+    <string name="label_engine">Inneall</string>
+    <string name="no_vehicle_set">Níl feithicil socraithe. Buail ar \"Socraigh Feithicil\" le ceann a roghnú agus páirteanna a scagadh.</string>
+    <string name="btn_remove_vehicle">Bain Feithicil</string>
+    <string name="badge_admin">Riarthóir</string>
+    <string name="btn_sign_out">Sínigh Amach</string>
+    <string name="msg_signed_out">Sínithe amach</string>
+
+    <!-- Vehicle Picker -->
+    <string name="picker_title">Roghnaigh Do Fheithicil</string>
+    <string name="picker_error">Níorbh fhéidir feithiclí a lódáil: %1$s</string>
+    <string name="picker_no_vehicles">Níl feithiclí ar fáil. Iarr ar riarthóir ceann a chur leis.</string>
+    <string name="picker_label_make">Déantóir</string>
+    <string name="picker_label_model">Samhail</string>
+    <string name="picker_label_year">Bliain</string>
+    <string name="picker_select_make">Roghnaigh Déantóir</string>
+    <string name="picker_select_model">Roghnaigh Samhail</string>
+    <string name="picker_select_year">Roghnaigh Bliain</string>
+    <string name="picker_engine">Inneall: %1$s</string>
+    <string name="btn_cancel">Cealaigh</string>
+
+    <!-- Admin Menu -->
+    <string name="admin_panel_title">Painéal Riaracháin</string>
+    <string name="admin_add_part_title">Cuir Páirt Leis</string>
+    <string name="admin_add_part_desc">Cuir páirt charr nua leis an gcatalóg</string>
+    <string name="admin_add_vehicle_title">Cuir Feithicil Leis</string>
+    <string name="admin_add_vehicle_desc">Cuir déantóir agus samhail feithicle nua leis</string>
+    <string name="cd_back">Ar Ais</string>
+    <string name="btn_back">Ar Ais</string>
+
+    <!-- Admin Add Part -->
+    <string name="field_name_required">Ainm *</string>
+    <string name="field_price">Praghas</string>
+    <string name="field_part_number">Uimhir Páirt / SKU</string>
+    <string name="field_manufacturer">Monaróir</string>
+    <string name="field_category">Catagóir</string>
+    <string name="field_condition">Staid</string>
+    <string name="field_stock_quantity">Cainníocht Stoic</string>
+    <string name="field_image_url">URL Íomhá</string>
+    <string name="field_vehicle_make">Déantóir Feithicle</string>
+    <string name="field_vehicle_model">Samhail Feithicle</string>
+    <string name="field_description">Cur Síos</string>
+    <string name="btn_adding">Ag cur leis…</string>
+    <string name="error_name_required">Tá ainm ag teastáil.</string>
+    <string name="error_part_number_exists">Tá Uimhir Páirt \"%1$s\" ann cheana. Úsáid SKU uathúil.</string>
+    <string name="error_add_part_failed">Theip ar an bpáirt a chur leis.</string>
+    <string name="msg_part_added">Cuireadh \"%1$s\" leis go rathúil.</string>
+
+    <!-- Admin Add Vehicle -->
+    <string name="field_make_required">Déantóir *</string>
+    <string name="field_model_required">Samhail *</string>
+    <string name="field_year">Bliain</string>
+    <string name="field_engine_type">Cineál Innill</string>
+    <string name="error_make_model_required">Tá Déantóir agus Samhail ag teastáil.</string>
+    <string name="error_add_vehicle_failed">Theip ar an bhfeithicil a chur leis.</string>
+    <string name="msg_vehicle_added">Cuireadh \"%1$s %2$s\" leis go rathúil.</string>
+    <string name="btn_add_vehicle">Cuir Feithicil Leis</string>
+
+    <!-- Snackbar -->
+    <string name="msg_added_to_basket">%1$s curtha sa chiseán</string>
+
+    <!-- Language -->
+    <string name="btn_switch_language">Athraigh go Béarla</string>
+</resources>

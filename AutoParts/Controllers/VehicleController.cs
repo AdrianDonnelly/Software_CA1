@@ -1,4 +1,7 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
+using System.Text.Json;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using AutoParts.Data;
 using AutoParts.Models;
@@ -14,6 +17,18 @@ public class VehiclesController : ControllerBase
     public VehiclesController(AutoPartsDbContext context)
     {
         _context = context;
+    }
+
+    private bool IsAdmin()
+    {
+        var appMetadata = User.FindFirst("app_metadata")?.Value;
+        if (appMetadata == null) return false;
+        try
+        {
+            var metadata = JsonSerializer.Deserialize<JsonElement>(appMetadata);
+            return metadata.TryGetProperty("role", out var role) && role.GetString() == "admin";
+        }
+        catch { return false; }
     }
 
     // GET: api/Vehicles
@@ -34,9 +49,7 @@ public class VehiclesController : ControllerBase
             .FirstOrDefaultAsync(v => v.VehicleId == id);
 
         if (vehicle == null)
-        {
             return NotFound();
-        }
 
         return vehicle;
     }
@@ -50,9 +63,7 @@ public class VehiclesController : ControllerBase
             .FirstOrDefaultAsync(v => v.VehicleId == id);
 
         if (vehicle == null)
-        {
             return NotFound();
-        }
 
         return Ok(vehicle.AutoParts);
     }
@@ -67,24 +78,30 @@ public class VehiclesController : ControllerBase
             .ToListAsync();
     }
 
-    // POST: api/Vehicles
+    // POST: api/Vehicles — admin only
     [HttpPost]
+    [Authorize]
     public async Task<ActionResult<Vehicle>> PostVehicle(Vehicle vehicle)
     {
+        if (!IsAdmin())
+            return Forbid();
+
         _context.Vehicles.Add(vehicle);
         await _context.SaveChangesAsync();
 
         return CreatedAtAction(nameof(GetVehicle), new { id = vehicle.VehicleId }, vehicle);
     }
 
-    // PUT: api/Vehicles/5
+    // PUT: api/Vehicles/5 — admin only
     [HttpPut("{id}")]
+    [Authorize]
     public async Task<IActionResult> PutVehicle(int id, Vehicle vehicle)
     {
+        if (!IsAdmin())
+            return Forbid();
+
         if (id != vehicle.VehicleId)
-        {
             return BadRequest();
-        }
 
         _context.Entry(vehicle).State = EntityState.Modified;
 
@@ -95,24 +112,24 @@ public class VehiclesController : ControllerBase
         catch (DbUpdateConcurrencyException)
         {
             if (!VehicleExists(id))
-            {
                 return NotFound();
-            }
             throw;
         }
 
         return NoContent();
     }
 
-    // DELETE: api/Vehicles/5
+    // DELETE: api/Vehicles/5 — admin only
     [HttpDelete("{id}")]
+    [Authorize]
     public async Task<IActionResult> DeleteVehicle(int id)
     {
+        if (!IsAdmin())
+            return Forbid();
+
         var vehicle = await _context.Vehicles.FindAsync(id);
         if (vehicle == null)
-        {
             return NotFound();
-        }
 
         _context.Vehicles.Remove(vehicle);
         await _context.SaveChangesAsync();

@@ -79,9 +79,18 @@ object ApiClient {
     }
 
     private suspend fun get(path: String): String = withContext(Dispatchers.IO) {
+        getInternal(path, withAuth = false)
+    }
+
+    private suspend fun getAuthenticated(path: String): String = withContext(Dispatchers.IO) {
+        getInternal(path, withAuth = true)
+    }
+
+    private fun getInternal(path: String, withAuth: Boolean): String {
         val conn = URL("$BASE_URL$path").openConnection() as HttpURLConnection
         conn.requestMethod = "GET"
         conn.setRequestProperty("Accept", "application/json")
+        if (withAuth) currentToken()?.let { conn.setRequestProperty("Authorization", "Bearer $it") }
         conn.connectTimeout = 15_000
         conn.readTimeout = 15_000
         val code = conn.responseCode
@@ -95,11 +104,15 @@ object ApiClient {
         body
     }
 
+    private fun currentToken(): String? =
+        SupaBaseClient.client.auth.currentSessionOrNull()?.accessToken
+
     private suspend fun post(path: String, body: String) = withContext(Dispatchers.IO) {
         val conn = URL("$BASE_URL$path").openConnection() as HttpURLConnection
         conn.requestMethod = "POST"
         conn.setRequestProperty("Content-Type", "application/json; charset=utf-8")
         conn.setRequestProperty("Accept", "application/json")
+        currentToken()?.let { conn.setRequestProperty("Authorization", "Bearer $it") }
         conn.connectTimeout = 15_000
         conn.readTimeout = 15_000
         conn.doOutput = true
@@ -118,6 +131,7 @@ object ApiClient {
         conn.requestMethod = "PUT"
         conn.setRequestProperty("Content-Type", "application/json; charset=utf-8")
         conn.setRequestProperty("Accept", "application/json")
+        currentToken()?.let { conn.setRequestProperty("Authorization", "Bearer $it") }
         conn.connectTimeout = 15_000
         conn.readTimeout = 15_000
         conn.doOutput = true

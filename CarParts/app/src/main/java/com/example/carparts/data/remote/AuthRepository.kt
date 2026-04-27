@@ -2,6 +2,8 @@ package com.example.carparts.data.remote
 
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.auth.providers.builtin.Email
+import kotlinx.serialization.json.contentOrNull
+import kotlinx.serialization.json.jsonPrimitive
 
 object AuthRepository {
 
@@ -31,6 +33,12 @@ object AuthRepository {
 
     fun getCurrentUserEmail(): String? {
         return SupaBaseClient.client.auth.currentUserOrNull()?.email
+    }
+
+    fun isAdmin(): Boolean {
+        val user = SupaBaseClient.client.auth.currentUserOrNull() ?: return false
+        val role = user.appMetadata["role"]?.jsonPrimitive?.contentOrNull
+        return role == "admin"
     }
 
     fun getCurrentUserProfile(): UserProfile? {

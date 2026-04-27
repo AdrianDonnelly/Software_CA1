@@ -36,7 +36,6 @@ import com.example.carparts.util.basketKey
 import com.example.carparts.util.getFirstNonBlank
 import kotlinx.coroutines.launch
 
-private const val ADMIN_EMAIL = "admin@carparts.com"
 
 class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -85,8 +84,7 @@ class MainActivity : AppCompatActivity() {
                                 innerPadding = innerPadding,
                                 onAuthSuccess = { message ->
                                     isAuthenticated = true
-                                    isAdmin = AuthRepository.getCurrentUserEmail()
-                                        .equals(ADMIN_EMAIL, ignoreCase = true)
+                                    isAdmin = AuthRepository.isAdmin()
                                     selectedVehicle = VehiclePreferences.load(context)
                                     scope.launch { snackbarHostState.showSnackbar(message) }
                                 }
