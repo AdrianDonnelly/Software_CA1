@@ -31,6 +31,8 @@
     <string name="cd_close">Close</string>
 
     <!-- Parts Screen -->
+    <string name="hint_search_parts">Search parts…</string>
+    <string name="no_parts_matching_search">No parts matching "%1$s".</string>
     <string name="heading_parts_for_vehicle">Parts for %1$s</string>
     <string name="no_parts_found">No parts found in the database.</string>
     <string name="no_parts_in_category">No parts found in \"%1$s\".</string>

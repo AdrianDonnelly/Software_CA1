@@ -13,6 +13,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -20,6 +23,9 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -61,6 +67,7 @@ fun PartsScreen(
     var errorMessage by remember { mutableStateOf<String?>(null) }
     var selectedPart by remember { mutableStateOf<Map<String, String>?>(null) }
     var filterByVehicle by remember { mutableStateOf(false) }
+    var searchQuery by remember { mutableStateOf("") }
 
     LaunchedEffect(selectedVehicle) {
         if (selectedVehicle == null) filterByVehicle = false
@@ -88,6 +95,17 @@ fun PartsScreen(
         .let { list ->
             if (filterByVehicle && selectedVehicle != null) {
                 list.filter { it.getFirstNonBlank("VehicleId", "vehicleid") == selectedVehicle.id }
+            } else list
+        }
+        .let { list ->
+            if (searchQuery.isNotBlank()) {
+                val q = searchQuery.trim().lowercase()
+                list.filter { part ->
+                    part.getFirstNonBlank("Name", "name")?.lowercase()?.contains(q) == true ||
+                    part.getFirstNonBlank("PartNumber", "partNumber", "part_number", "sku")?.lowercase()?.contains(q) == true ||
+                    part.getFirstNonBlank("Manufacturer", "manufacturer")?.lowercase()?.contains(q) == true ||
+                    part.getFirstNonBlank("Category", "category")?.lowercase()?.contains(q) == true
+                }
             } else list
         }
 
@@ -119,6 +137,24 @@ fun PartsScreen(
                 }
 
                 item {
+                    OutlinedTextField(
+                        value = searchQuery,
+                        onValueChange = { searchQuery = it },
+                        placeholder = { Text(stringResource(R.string.hint_search_parts)) },
+                        leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
+                        trailingIcon = {
+                            if (searchQuery.isNotEmpty()) {
+                                IconButton(onClick = { searchQuery = "" }) {
+                                    Icon(Icons.Default.Close, contentDescription = null)
+                                }
+                            }
+                        },
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
+
+                item {
                     val heading = when {
                         filterByVehicle && selectedVehicle != null ->
                             stringResource(R.string.heading_parts_for_vehicle, selectedVehicle.displayName)
@@ -142,6 +178,8 @@ fun PartsScreen(
                             contentAlignment = Alignment.Center
                         ) {
                             val message = when {
+                                searchQuery.isNotBlank() ->
+                                    stringResource(R.string.no_parts_matching_search, searchQuery.trim())
                                 filterByVehicle && selectedVehicle != null ->
                                     stringResource(R.string.no_parts_for_vehicle, selectedVehicle.displayName)
                                 !selectedCategory.isNullOrBlank() ->

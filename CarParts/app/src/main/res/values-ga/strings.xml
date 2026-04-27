@@ -31,6 +31,8 @@
     <string name="cd_close">Dún</string>
 
     <!-- Parts Screen -->
+    <string name="hint_search_parts">Cuardaigh páirteanna…</string>
+    <string name="no_parts_matching_search">Níl aon pháirteanna ag teacht le "%1$s".</string>
     <string name="heading_parts_for_vehicle">Páirteanna do %1$s</string>
     <string name="no_parts_found">Níor aimsíodh páirteanna ar bith.</string>
     <string name="no_parts_in_category">Níor aimsíodh páirteanna sa chatagóir \"%1$s\".</string>
