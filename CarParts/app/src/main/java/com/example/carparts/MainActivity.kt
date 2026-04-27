@@ -2,8 +2,8 @@ package com.example.carparts
 
 import android.os.Bundle
 import androidx.activity.compose.setContent
-import androidx.appcompat.app.AppCompatActivity
 import androidx.activity.enableEdgeToEdge
+import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
@@ -19,8 +19,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
-import com.example.carparts.data.remote.AuthRepository
+import androidx.compose.ui.res.stringResource
 import com.example.carparts.data.remote.ApiClient
+import com.example.carparts.data.remote.AuthRepository
+import com.example.carparts.data.remote.SupaBaseClient
 import com.example.carparts.ui.AuthScreen
 import com.example.carparts.ui.CarPartsTopBar
 import com.example.carparts.ui.CartScreen
@@ -29,13 +31,13 @@ import com.example.carparts.ui.CheckoutSuccessScreen
 import com.example.carparts.ui.PartsScreen
 import com.example.carparts.ui.ProfileScreen
 import com.example.carparts.ui.admin.AdminScreen
-import androidx.compose.ui.res.stringResource
 import com.example.carparts.ui.theme.CarPartsTheme
 import com.example.carparts.util.VehiclePreferences
 import com.example.carparts.util.basketKey
 import com.example.carparts.util.getFirstNonBlank
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-
 
 class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -212,6 +214,13 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         }
+    }
+
+    override fun onDestroy() {
+        CoroutineScope(Dispatchers.IO).launch {
+            SupaBaseClient.close()
+        }
+        super.onDestroy()
     }
 }
 
