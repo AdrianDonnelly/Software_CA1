@@ -31,6 +31,18 @@ public static class TestHelpers
         };
     }
 
+    public static void SetNonAdminContext(ControllerBase controller, string? userId = "user-123")
+    {
+        var claims = new List<Claim>();
+        if (userId != null)
+            claims.Add(new Claim(ClaimTypes.NameIdentifier, userId));
+        var identity = new ClaimsIdentity(claims, "TestAuth");
+        controller.ControllerContext = new ControllerContext
+        {
+            HttpContext = new DefaultHttpContext { User = new ClaimsPrincipal(identity) }
+        };
+    }
+
     public static Vehicle MakeVehicle(int id = 1, string make = "Toyota", string model = "Corolla", int year = 2020) =>
         new Vehicle
         {
