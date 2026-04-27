@@ -3,6 +3,7 @@ bin/
 obj/
 publish/
 publish_test_out/
+publish_test_out2/
 
 *.dll
 *.exe
@@ -17,5 +18,14 @@ CodeCoverage/
 # ---------- Azure ----------
 *.zip
 
+# ---------- Android ----------
+.gradle/
+build/
+local.properties
+*.iml
+.idea/
+
 # ---------- General ----------
 *.log
+
+#iv added heading to simplfy what we ignore was trying push tests and stuff just add under headings
