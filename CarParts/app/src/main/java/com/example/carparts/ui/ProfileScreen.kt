@@ -16,11 +16,9 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
-import androidx.core.os.LocaleListCompat
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Text
@@ -197,21 +195,7 @@ fun ProfileScreen(
 
         Spacer(modifier = Modifier.weight(1f))
 
-        Button(
-            onClick = {
-                val locales = AppCompatDelegate.getApplicationLocales()
-                val isIrish = !locales.isEmpty && locales[0]?.language == "ga"
-                if (isIrish) {
-                    AppCompatDelegate.setApplicationLocales(LocaleListCompat.getEmptyLocaleList())
-                } else {
-                    AppCompatDelegate.setApplicationLocales(LocaleListCompat.forLanguageTags("ga"))
-                }
-            },
-            modifier = Modifier.fillMaxWidth(),
-            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF065F46))
-        ) {
-            Text(stringResource(R.string.btn_switch_language), fontWeight = FontWeight.SemiBold)
-        }
+        LanguageToggleButton(modifier = Modifier.fillMaxWidth())
 
         Button(
             onClick = onSignOut,

@@ -165,4 +165,6 @@
 
     <!-- Language -->
     <string name="btn_switch_language">Switch to Irish</string>
+    <string name="label_lang_short_ga">GA</string>
+    <string name="label_lang_short_en">EN</string>
 </resources>

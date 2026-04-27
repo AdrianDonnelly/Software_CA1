@@ -96,6 +96,12 @@ fun AuthScreen(
                     text = stringResource(R.string.welcome_subtitle),
                     color = Color(0xFF4B5563)
                 )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.End
+                ) {
+                    LanguageToggleButton(compact = true)
+                }
 
                 TextField(
                     value = email,

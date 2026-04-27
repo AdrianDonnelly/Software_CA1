@@ -95,6 +95,8 @@ fun CarPartsTopBar(
                 }
 
                 Spacer(modifier = Modifier.size(8.dp))
+                LanguageToggleButton(compact = true)
+                Spacer(modifier = Modifier.size(8.dp))
 
                 IconButton(onClick = onOpenProfile) {
                     Icon(
