@@ -70,7 +70,7 @@
     <string name="cart_empty">Tá do chiseán folamh.</string>
     <string name="label_cart_price">Praghas: %1$s</string>
     <string name="label_qty">Cainníocht: %1$d</string>
-    <string name="label_subtotal">Fo-iomlán: $%1$s</string>
+    <string name="label_subtotal">Fo-iomlán: €%1$s</string>
     <string name="btn_checkout">Seiceáil Amach</string>
     <string name="btn_back_to_parts">Ar Ais go Páirteanna</string>
     <string name="msg_checkout_failed">Theip ar an seiceáil amach. Déan iarracht eile.</string>

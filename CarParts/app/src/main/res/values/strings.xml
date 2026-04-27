@@ -70,7 +70,7 @@
     <string name="cart_empty">Your cart is empty.</string>
     <string name="label_cart_price">Price: %1$s</string>
     <string name="label_qty">Qty: %1$d</string>
-    <string name="label_subtotal">Subtotal: $%1$s</string>
+    <string name="label_subtotal">Subtotal: €%1$s</string>
     <string name="btn_checkout">Checkout</string>
     <string name="btn_back_to_parts">Back to Parts</string>
     <string name="msg_checkout_failed">Checkout failed. Please try again.</string>

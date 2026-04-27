@@ -31,7 +31,7 @@ internal fun Map<String, String>.readStockQuantity(): Int {
 
 internal fun String?.toPriceLabel(): String {
     val number = this?.toDoubleOrNull()
-    return if (number == null) "-" else "$%.2f".format(number)
+    return if (number == null) "-" else "€%.2f".format(number)
 }
 
 internal fun Int.toStockLabel(): String {
