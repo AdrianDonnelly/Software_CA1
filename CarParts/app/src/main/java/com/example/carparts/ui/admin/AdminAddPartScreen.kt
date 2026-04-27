@@ -99,16 +99,16 @@ internal fun AdminAddPartContent(
     LaunchedEffect(Unit) {
         ApiClient.fetchParts().onSuccess { parts ->
             categoryOptions = parts
-                .mapNotNull { it.getFirstNonBlank("Category", "category") }
+                .mapNotNull { it.getFirstNonBlank("Category") }
                 .filter { it.isNotBlank() }.distinct().sorted()
             manufacturerOptions = parts
-                .mapNotNull { it.getFirstNonBlank("Manufacturer", "manufacturer") }
+                .mapNotNull { it.getFirstNonBlank("Manufacturer") }
                 .filter { it.isNotBlank() }.distinct().sorted()
             conditionOptions = parts
-                .mapNotNull { it.getFirstNonBlank("Condition", "condition") }
+                .mapNotNull { it.getFirstNonBlank("Condition") }
                 .filter { it.isNotBlank() }.distinct().sorted()
             existingPartNumbers = parts
-                .mapNotNull { it.getFirstNonBlank("PartNumber", "part_number", "sku") }
+                .mapNotNull { it.getFirstNonBlank("PartNumber") }
                 .filter { it.isNotBlank() }
                 .toSet()
         }
@@ -116,15 +116,15 @@ internal fun AdminAddPartContent(
     }
 
     val makeOptions = vehicles
-        .mapNotNull { it.getFirstNonBlank("Make", "make") }
+        .mapNotNull { it.getFirstNonBlank("Make") }
         .filter { it.isNotBlank() }.distinct().sorted()
 
     val modelOptions = vehicles
-        .filter { it.getFirstNonBlank("Make", "make").equals(selectedMake, ignoreCase = true) }
+        .filter { it.getFirstNonBlank("Make").equals(selectedMake, ignoreCase = true) }
         .mapNotNull { v ->
-            val id = v.getFirstNonBlank("VehicleId", "vehicleid") ?: return@mapNotNull null
-            val model = v.getFirstNonBlank("Model", "model") ?: ""
-            val year = v.getFirstNonBlank("Year", "year") ?: ""
+            val id = v.getFirstNonBlank("VehicleId") ?: return@mapNotNull null
+            val model = v.getFirstNonBlank("Model") ?: ""
+            val year = v.getFirstNonBlank("Year") ?: ""
             val display = if (year.isNotBlank()) "$model ($year)" else model
             Pair(display, id)
         }

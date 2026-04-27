@@ -49,31 +49,25 @@ object ApiClient {
         part: Map<String, String>,
         quantity: Int
     ): Pair<String, String> {
-        val partId = part.getFirstNonBlank("PartId", "partid", "id")
+        val partId = part.getFirstNonBlank("PartId")
             ?: error("Missing PartId for checkout item.")
         val partIdInt = partId.toIntOrNull() ?: error("Invalid PartId: $partId")
 
-        val currentStock = part.getFirstNonBlank("StockQuantity", "stockquantity", "stock", "quantity")
-            ?.toIntOrNull() ?: 0
+        val currentStock = part.getFirstNonBlank("StockQuantity")?.toIntOrNull() ?: 0
         val nextStock = (currentStock - quantity).coerceAtLeast(0)
 
         val body = buildJsonObject {
             put("partId", partIdInt)
-            put("name", part.getFirstNonBlank("Name", "name") ?: "")
-            put("partNumber", part.getFirstNonBlank("PartNumber", "partNumber", "part_number", "sku") ?: "")
-            put("category", part.getFirstNonBlank("Category", "category") ?: "")
-            put("manufacturer", part.getFirstNonBlank("Manufacturer", "manufacturer") ?: "")
-            put("price", part.getFirstNonBlank("Price", "price")?.toDoubleOrNull() ?: 0.0)
+            put("name", part.getFirstNonBlank("Name") ?: "")
+            put("partNumber", part.getFirstNonBlank("PartNumber") ?: "")
+            put("category", part.getFirstNonBlank("Category") ?: "")
+            put("manufacturer", part.getFirstNonBlank("Manufacturer") ?: "")
+            put("price", part.getFirstNonBlank("Price")?.toDoubleOrNull() ?: 0.0)
             put("stockQuantity", nextStock)
-            part.getFirstNonBlank("VehicleId", "vehicleId", "vehicleid")
-                ?.toIntOrNull()
-                ?.let { put("vehicleId", it) }
-            part.getFirstNonBlank("Description", "description")
-                ?.let { put("description", it) }
-            part.getFirstNonBlank("ImageUrl", "imageUrl", "imageurl", "image_url")
-                ?.let { put("imageUrl", it) }
-            part.getFirstNonBlank("Condition", "condition")
-                ?.let { put("condition", it) }
+            part.getFirstNonBlank("VehicleId")?.toIntOrNull()?.let { put("vehicleId", it) }
+            part.getFirstNonBlank("Description")?.let { put("description", it) }
+            part.getFirstNonBlank("ImageUrl")?.let { put("imageUrl", it) }
+            part.getFirstNonBlank("Condition")?.let { put("condition", it) }
         }.toString()
 
         return partId to body

@@ -55,21 +55,21 @@ fun VehiclePickerDialog(
     }
 
     val availableMakes = remember(vehicles) {
-        vehicles.mapNotNull { it.getFirstNonBlank("Make", "make") }.distinct().sorted()
+        vehicles.mapNotNull { it.getFirstNonBlank("Make") }.distinct().sorted()
     }
     val availableModels = remember(vehicles, selectedMake) {
         vehicles
-            .filter { it.getFirstNonBlank("Make", "make")?.equals(selectedMake, ignoreCase = true) == true }
-            .mapNotNull { it.getFirstNonBlank("Model", "model") }
+            .filter { it.getFirstNonBlank("Make")?.equals(selectedMake, ignoreCase = true) == true }
+            .mapNotNull { it.getFirstNonBlank("Model") }
             .distinct().sorted()
     }
     val availableYears = remember(vehicles, selectedMake, selectedModel) {
         vehicles
             .filter {
-                it.getFirstNonBlank("Make", "make")?.equals(selectedMake, ignoreCase = true) == true &&
-                it.getFirstNonBlank("Model", "model")?.equals(selectedModel, ignoreCase = true) == true
+                it.getFirstNonBlank("Make")?.equals(selectedMake, ignoreCase = true) == true &&
+                it.getFirstNonBlank("Model")?.equals(selectedModel, ignoreCase = true) == true
             }
-            .mapNotNull { it.getFirstNonBlank("Year", "year")?.takeIf { y -> y.isNotBlank() } }
+            .mapNotNull { it.getFirstNonBlank("Year") }
             .distinct().sortedDescending()
     }
 
@@ -85,9 +85,9 @@ fun VehiclePickerDialog(
     val matchingVehicle = remember(vehicles, selectedMake, selectedModel, selectedYear) {
         if (selectedMake == null || selectedModel == null) return@remember null
         vehicles.firstOrNull {
-            it.getFirstNonBlank("Make", "make")?.equals(selectedMake, ignoreCase = true) == true &&
-            it.getFirstNonBlank("Model", "model")?.equals(selectedModel, ignoreCase = true) == true &&
-            (availableYears.isEmpty() || it.getFirstNonBlank("Year", "year")?.equals(selectedYear, ignoreCase = true) == true)
+            it.getFirstNonBlank("Make")?.equals(selectedMake, ignoreCase = true) == true &&
+            it.getFirstNonBlank("Model")?.equals(selectedModel, ignoreCase = true) == true &&
+            (availableYears.isEmpty() || it.getFirstNonBlank("Year")?.equals(selectedYear, ignoreCase = true) == true)
         }
     }
 
@@ -150,7 +150,7 @@ fun VehiclePickerDialog(
                         )
                     }
                     matchingVehicle?.let { v ->
-                        val engine = v.getFirstNonBlank("EngineType", "enginetype", "engine_type")
+                        val engine = v.getFirstNonBlank("EngineType")
                         if (!engine.isNullOrBlank()) {
                             Text(
                                 text = stringResource(R.string.picker_engine, engine),
@@ -166,14 +166,14 @@ fun VehiclePickerDialog(
             Button(
                 onClick = {
                     val vehicle = matchingVehicle ?: return@Button
-                    val id = vehicle.getFirstNonBlank("VehicleId", "vehicleid", "id") ?: return@Button
+                    val id = vehicle.getFirstNonBlank("VehicleId") ?: return@Button
                     onVehicleSelected(
                         SelectedVehicle(
                             id = id,
                             make = selectedMake ?: "",
                             model = selectedModel ?: "",
                             year = selectedYear ?: "",
-                            engineType = vehicle.getFirstNonBlank("EngineType", "enginetype") ?: ""
+                            engineType = vehicle.getFirstNonBlank("EngineType") ?: ""
                         )
                     )
                 },

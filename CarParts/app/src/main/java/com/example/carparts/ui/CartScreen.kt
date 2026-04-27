@@ -39,7 +39,7 @@ fun CartScreen(
     onDecreaseItem: (String) -> Unit
 ) {
     val subtotal = items.sumOf { item ->
-        val price = item.part.getFirstNonBlank("Price", "price")?.toDoubleOrNull() ?: 0.0
+        val price = item.part.getFirstNonBlank("Price")?.toDoubleOrNull() ?: 0.0
         price * item.quantity
     }
 
@@ -65,9 +65,9 @@ fun CartScreen(
                 verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
                 items(items) { item ->
-                    val title = item.part.getFirstNonBlank("Name", "name", "title") ?: "Part"
+                    val title = item.part.getFirstNonBlank("Name") ?: "Part"
                     val key = item.part.basketKey()
-                    val priceText = item.part.getFirstNonBlank("Price", "price").toPriceLabel()
+                    val priceText = item.part.getFirstNonBlank("Price").toPriceLabel()
 
                     Card(
                         colors = CardDefaults.cardColors(containerColor = Color(0xFFF8FAFC)),

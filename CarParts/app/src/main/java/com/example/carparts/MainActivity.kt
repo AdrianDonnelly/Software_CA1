@@ -175,7 +175,7 @@ class MainActivity : AppCompatActivity() {
                                         } else {
                                             existing.copy(quantity = existing.quantity + 1)
                                         }
-                                        val title = part.getFirstNonBlank("Name", "name", "title") ?: "Part"
+                                        val title = part.getFirstNonBlank("Name") ?: "Part"
                                         scope.launch {
                                             snackbarHostState.showSnackbar(
                                                 context.getString(R.string.msg_added_to_basket, title)

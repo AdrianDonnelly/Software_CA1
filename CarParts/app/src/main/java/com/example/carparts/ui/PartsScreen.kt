@@ -87,27 +87,16 @@ fun PartsScreen(
         isLoading = false
     }
 
-    val visibleParts = parts
-        .let { list ->
-            if (!selectedCategory.isNullOrBlank()) list.filter { it.matchesCategory(selectedCategory) }
-            else list
-        }
-        .let { list ->
-            if (filterByVehicle && selectedVehicle != null) {
-                list.filter { it.getFirstNonBlank("VehicleId", "vehicleid") == selectedVehicle.id }
-            } else list
-        }
-        .let { list ->
-            if (searchQuery.isNotBlank()) {
-                val q = searchQuery.trim().lowercase()
-                list.filter { part ->
-                    part.getFirstNonBlank("Name", "name")?.lowercase()?.contains(q) == true ||
-                    part.getFirstNonBlank("PartNumber", "partNumber", "part_number", "sku")?.lowercase()?.contains(q) == true ||
-                    part.getFirstNonBlank("Manufacturer", "manufacturer")?.lowercase()?.contains(q) == true ||
-                    part.getFirstNonBlank("Category", "category")?.lowercase()?.contains(q) == true
-                }
-            } else list
-        }
+    val q = searchQuery.trim().lowercase()
+    val visibleParts = parts.filter { part ->
+        (selectedCategory.isNullOrBlank() || part.matchesCategory(selectedCategory)) &&
+        (!filterByVehicle || selectedVehicle == null || part.getFirstNonBlank("VehicleId") == selectedVehicle.id) &&
+        (q.isEmpty() ||
+            part.getFirstNonBlank("Name")?.lowercase()?.contains(q) == true ||
+            part.getFirstNonBlank("PartNumber")?.lowercase()?.contains(q) == true ||
+            part.getFirstNonBlank("Manufacturer")?.lowercase()?.contains(q) == true ||
+            part.getFirstNonBlank("Category")?.lowercase()?.contains(q) == true)
+    }
 
     when {
         isLoading -> Box(
@@ -270,14 +259,14 @@ fun PartRow(
     onAddToBasket: () -> Unit,
     canAddToBasket: Boolean
 ) {
-    val title = part.getFirstNonBlank("Name", "name", "part_name", "partname", "title") ?: "Unnamed part"
-    val price = part.getFirstNonBlank("Price", "price", "cost", "unit_price")
+    val title = part.getFirstNonBlank("Name") ?: "Unnamed part"
+    val price = part.getFirstNonBlank("Price")
     val stockQuantity = part.readStockQuantity()
-    val sku = part.getFirstNonBlank("PartNumber", "sku", "part_number", "part_no", "id")
-    val brand = part.getFirstNonBlank("Manufacturer", "manufacturer")
-    val category = part.getFirstNonBlank("Category", "category")
-    val condition = part.getFirstNonBlank("Condition", "condition")
-    val imageUrl = part.getFirstNonBlank("ImageUrl", "image_url", "imageurl")
+    val sku = part.getFirstNonBlank("PartNumber")
+    val brand = part.getFirstNonBlank("Manufacturer")
+    val category = part.getFirstNonBlank("Category")
+    val condition = part.getFirstNonBlank("Condition")
+    val imageUrl = part.getFirstNonBlank("ImageUrl")
 
     val stockLabel = when {
         stockQuantity <= 0 -> stringResource(R.string.label_out_of_stock)
@@ -368,17 +357,17 @@ fun PartDetailsDialog(
     onAddToBasket: () -> Unit,
     canAddToBasket: Boolean
 ) {
-    val title = part.getFirstNonBlank("Name", "name", "part_name", "partname", "title") ?: "Part details"
-    val partNumber = part.getFirstNonBlank("PartNumber", "part_number", "sku")
-    val category = part.getFirstNonBlank("Category", "category")
-    val manufacturer = part.getFirstNonBlank("Manufacturer", "manufacturer")
-    val condition = part.getFirstNonBlank("Condition", "condition")
-    val description = part.getFirstNonBlank("Description", "description")
-    val vehicleId = part.getFirstNonBlank("VehicleId", "vehicleid")
-    val partId = part.getFirstNonBlank("PartId", "partid", "id")
+    val title = part.getFirstNonBlank("Name") ?: "Part details"
+    val partNumber = part.getFirstNonBlank("PartNumber")
+    val category = part.getFirstNonBlank("Category")
+    val manufacturer = part.getFirstNonBlank("Manufacturer")
+    val condition = part.getFirstNonBlank("Condition")
+    val description = part.getFirstNonBlank("Description")
+    val vehicleId = part.getFirstNonBlank("VehicleId")
+    val partId = part.getFirstNonBlank("PartId")
     val stockQuantity = part.readStockQuantity()
-    val price = part.getFirstNonBlank("Price", "price")
-    val imageUrl = part.getFirstNonBlank("ImageUrl", "image_url", "imageurl")
+    val price = part.getFirstNonBlank("Price")
+    val imageUrl = part.getFirstNonBlank("ImageUrl")
 
     val stockLabel = when {
         stockQuantity <= 0 -> stringResource(R.string.label_out_of_stock)
