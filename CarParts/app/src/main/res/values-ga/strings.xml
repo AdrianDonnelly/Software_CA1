@@ -73,7 +73,11 @@
     <string name="label_subtotal">Fo-iomlán: $%1$s</string>
     <string name="btn_checkout">Seiceáil Amach</string>
     <string name="btn_back_to_parts">Ar Ais go Páirteanna</string>
-    <string name="msg_checkout_test">Brúdh ar Seiceáil Amach. Gan nuashonruithe stoic fós.</string>
+    <string name="msg_checkout_failed">Theip ar an seiceáil amach. Déan iarracht eile.</string>
+    <string name="msg_checkout_failed_with_reason">Theip ar an seiceáil amach: %1$s</string>
+    <string name="checkout_thanks_title">Go raibh maith agat as d\'ordú!</string>
+    <string name="checkout_redirect_message">Déanfar tú a atreorú go dtí an príomhleathanach go luath.</string>
+    <string name="btn_continue_shopping">Ar Ais go Baile</string>
 
     <!-- Profile -->
     <string name="section_account_details">Sonraí Cuntais</string>
