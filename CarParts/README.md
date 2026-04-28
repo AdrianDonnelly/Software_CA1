@@ -58,3 +58,5 @@ I also ensured that users receive clear feedback during checkout, including conf
 
 ### Unit Testing and UI/Instrumentation Testing
 I implemented both unit tests and UI/instrumentation tests to validate the functionality of key features. These tests covered authentication logic, cart and checkout behaviour, and language-switching functionality.  
+<img width="2499" height="450" alt="image" src="https://github.com/user-attachments/assets/fb2dc1e6-8f57-42eb-be09-77c83a228415" />
+
