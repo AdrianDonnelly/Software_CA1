@@ -17,9 +17,9 @@ This initial setup provided a stable base for further development and ensured th
 ### API and Database Integration
 While the backend API and database were developed by Adrian, I handled the integration of these services into the Android application. This involved connecting the app to the provided API endpoints, sending HTTP requests, and handling responses to retrieve and display data such as car parts and related information.
 
-I implemented the logic required to process API responses, including parsing returned data and updating the user interface dynamically. I also handled error scenarios such as failed requests, invalid responses, or missing data to ensure the application remained stable and user-friendly.
+I got the API responses, including parsing returned data and updating the user interface dynamically. I also handled error scenarios such as failed requests, invalid responses, or missing data to ensure the application remained stable and user-friendly.
 
-This integration was essential in enabling communication between the frontend and backend, transforming the application from a static interface into a fully functional system with real-time data.
+This was essential in enabling communication between the frontend and backend, transforming the application from a static interface into a fully functional system with real-time data.
 
 ---
 
@@ -33,12 +33,12 @@ I also improved the authentication flow by introducing clearer validation messag
 ### Full UI Design and User Interface Improvements
 I handled the UI implementation and improved the overall design. This included refining layout structure, spacing, and visual hierarchy to create a more intuitive and user-friendly experience.
 
-A key enhancement was the redesign of the item sidebar, which improved navigation and made it easier for users to browse available car parts.
+A redesign of the item sidebar making it a burger ui which improved navigation and made it easier for users to browse available car parts.
 
 ---
 
 ### Item Filtering Feature
-I implemented a filtering feature that allows users to narrow down product listings based on relevant criteria. This functionality dynamically updates the displayed items based on user input, reducing the need to manually browse large lists.
+I implemented a filtering feature that allows users to narrow down product listings based on relevant criteria. This functionality dynamically updates the displayed items based on user input, reducing the need to manually browse large list
 
 ---
 
@@ -50,14 +50,14 @@ This involved updating text resources and ensuring that all UI components respon
 ---
 
 ### Cart and Checkout Functionality
-I implemented the cart system and checkout process, allowing users to add items, manage their basket, and complete purchases. This included handling cart state, updating item quantities, calculating totals, and processing checkout actions.
+I done the cart system and checkout process, allowing users to add items, manage their basket, and complete purchases. This handled deducting things from the database as a user purchased something handled issues if there was nothing in stock and displayed it
 
-I also ensured that users receive clear feedback during checkout, including confirmation messages for successful transactions and appropriate error messages if issues occur.
+I added a checkout message that users can see during checkout, including confirmation messages for successful transactions and appropriate error messages if issues occur.
 
 ---
 
 ### Unit Testing and UI/Instrumentation Testing
-I implemented both unit tests and UI/instrumentation tests to validate the functionality of key features. These tests covered authentication logic, cart and checkout behaviour, and language-switching functionality.  
+I done espresso unit tests and UI/instrumentation tests to validate authentication logic, cart and checkout behaviour, and language-switching functionality.  
 <img width="2499" height="450" alt="image" src="https://github.com/user-attachments/assets/fb2dc1e6-8f57-42eb-be09-77c83a228415" />
 
 # CarParts – Work Completed
