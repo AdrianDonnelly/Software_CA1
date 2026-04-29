@@ -67,6 +67,26 @@ class CartAuthCheckoutUiTest {
     }
 
     @Test
+    fun authSignup_showsPasswordTooShortMessage_forShortPassword() {
+        val emailLabel = targetContext.getString(R.string.label_email)
+        val passwordLabel = targetContext.getString(R.string.label_password)
+        val signUpLabel = targetContext.getString(R.string.btn_sign_up)
+        val passwordShortMessage = targetContext.getString(R.string.error_password_too_short)
+
+        composeRule.setContent {
+            AuthScreen(
+                innerPadding = PaddingValues(),
+                onAuthSuccess = {}
+            )
+        }
+
+        composeRule.onNode(hasText(emailLabel) and hasSetTextAction()).performTextInput("david@test.com")
+        composeRule.onNode(hasText(passwordLabel) and hasSetTextAction()).performTextInput("123")
+        composeRule.onNodeWithText(signUpLabel).performClick()
+        composeRule.onNodeWithText(passwordShortMessage).assertIsDisplayed()
+    }
+
+    @Test
     fun partRow_addToBasket_invokesCallback() {
         val addLabel = targetContext.getString(R.string.btn_add_to_basket)
         var addClicks = 0
@@ -136,5 +156,68 @@ class CartAuthCheckoutUiTest {
 
         composeRule.onNodeWithText(checkoutLabel).performClick()
         assertTrue(didCheckout)
+    }
+
+    @Test
+    fun cartQuantityButtons_invokeIncreaseAndDecreaseCallbacks() {
+        var increaseKey: String? = null
+        var decreaseKey: String? = null
+
+        composeRule.setContent {
+            CartScreen(
+                innerPadding = PaddingValues(),
+                items = listOf(
+                    CartItem(
+                        part = mapOf(
+                            "PartId" to "10",
+                            "Name" to "Spark Plug",
+                            "Price" to "9.50",
+                            "StockQuantity" to "8"
+                        ),
+                        quantity = 2
+                    )
+                ),
+                onBackToParts = {},
+                onCheckout = {},
+                onIncreaseItem = { increaseKey = it },
+                onDecreaseItem = { decreaseKey = it }
+            )
+        }
+
+        composeRule.onNodeWithText("+").performClick()
+        composeRule.onNodeWithText("-").performClick()
+
+        assertEquals("10", increaseKey)
+        assertEquals("10", decreaseKey)
+    }
+
+    @Test
+    fun cartBackToParts_invokesCallback() {
+        val backLabel = targetContext.getString(R.string.btn_back_to_parts)
+        var didGoBack = false
+
+        composeRule.setContent {
+            CartScreen(
+                innerPadding = PaddingValues(),
+                items = listOf(
+                    CartItem(
+                        part = mapOf(
+                            "PartId" to "11",
+                            "Name" to "Oil Filter",
+                            "Price" to "12.00",
+                            "StockQuantity" to "4"
+                        ),
+                        quantity = 1
+                    )
+                ),
+                onBackToParts = { didGoBack = true },
+                onCheckout = {},
+                onIncreaseItem = {},
+                onDecreaseItem = {}
+            )
+        }
+
+        composeRule.onNodeWithText(backLabel).performClick()
+        assertTrue(didGoBack)
     }
 }

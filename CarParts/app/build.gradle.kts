@@ -1,10 +1,12 @@
 import java.util.Properties
+import org.gradle.testing.jacoco.tasks.JacocoReport
 
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
     id("org.jetbrains.kotlin.plugin.compose")
     alias(libs.plugins.kotlin.serialization)
+    jacoco
 }
 
 val localProperties = Properties()
@@ -34,6 +36,11 @@ android {
     }
 
     buildTypes {
+        debug {
+            enableUnitTestCoverage = true
+            enableAndroidTestCoverage = true
+        }
+
         release {
             isMinifyEnabled = false
             proguardFiles(
@@ -85,4 +92,42 @@ dependencies {
 
     debugImplementation("androidx.compose.ui:ui-tooling")
     debugImplementation("androidx.compose.ui:ui-test-manifest")
+}
+
+jacoco {
+    toolVersion = "0.8.12"
+}
+
+tasks.register<JacocoReport>("jacocoTestReport") {
+    dependsOn("testDebugUnitTest")
+
+    reports {
+        xml.required.set(true)
+        html.required.set(true)
+    }
+
+    val classExcludes = listOf(
+        "**/R.class",
+        "**/R$*.class",
+        "**/BuildConfig.*",
+        "**/Manifest*.*",
+        "**/*Test*.*"
+    )
+
+    val javaClasses = fileTree("${layout.buildDirectory.get().asFile}/intermediates/javac/debug/classes") {
+        include("**/*Auth*.*", "**/*Cart*.*", "**/*Checkout*.*")
+        exclude(classExcludes)
+    }
+    val kotlinClasses = fileTree("${layout.buildDirectory.get().asFile}/tmp/kotlin-classes/debug") {
+        include("**/*Auth*.*", "**/*Cart*.*", "**/*Checkout*.*")
+        exclude(classExcludes)
+    }
+
+    classDirectories.setFrom(files(javaClasses, kotlinClasses))
+    sourceDirectories.setFrom(files("src/main/java", "src/main/kotlin"))
+    executionData.setFrom(fileTree(layout.buildDirectory) {
+        include("outputs/unit_test_code_coverage/debugUnitTest/testDebugUnitTest.exec")
+        include("jacoco/testDebugUnitTest.exec")
+        include("jacoco/testDebugUnitTest/*.exec")
+    })
 }
