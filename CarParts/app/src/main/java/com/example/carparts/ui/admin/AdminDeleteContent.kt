@@ -104,7 +104,7 @@ internal fun AdminDeletePartContent(
             else -> LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 items(
                     parts,
-                    key = { it.getFirstNonBlank("PartId") ?: it }
+                    key = { it.getFirstNonBlank("PartId") ?: it.toString() }
                 ) { part ->
                     val name = part.getFirstNonBlank("Name") ?: "-"
                     val sku = part.getFirstNonBlank("PartNumber")
@@ -251,7 +251,7 @@ internal fun AdminDeleteVehicleContent(
             else -> LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 items(
                     vehicles,
-                    key = { it.getFirstNonBlank("VehicleId") ?: it }
+                    key = { it.getFirstNonBlank("VehicleId") ?: it.toString() }
                 ) { vehicle ->
                     val make = vehicle.getFirstNonBlank("Make") ?: "-"
                     val model = vehicle.getFirstNonBlank("Model") ?: ""
