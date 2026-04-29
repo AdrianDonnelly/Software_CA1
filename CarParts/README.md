@@ -60,3 +60,50 @@ I also ensured that users receive clear feedback during checkout, including conf
 I implemented both unit tests and UI/instrumentation tests to validate the functionality of key features. These tests covered authentication logic, cart and checkout behaviour, and language-switching functionality.  
 <img width="2499" height="450" alt="image" src="https://github.com/user-attachments/assets/fb2dc1e6-8f57-42eb-be09-77c83a228415" />
 
+# CarParts – Work Completed
+
+
+**Adrian Donnelly (X00194620)**
+---
+### Backend API Development and Database Config
+I developed the ASP.NET Core backend for the CarParts project. This included implementing controllers for GET, POST, PUT, and DELETE operations.
+
+I configured the Supabase database with two tables: Vehicles and AutoParts. The Vehicles table stores make, model, year, and engine type. The AutoParts table contains part details with foreign key relationships linking parts to compatible vehicles, allowing for filtering by vehicle.
+ 
+---
+
+### Azure Deployment and CI/CD Pipeline
+I deployed the API to Azure. This involved configuring application settings, managing connection strings, and resolving environment compatibility issues.
+
+I implemented a GitHub Actions workflow that triggers on commits to the main branch which builds the application and deploys to Azure. The pipeline runs the tests before deployment, which has a 67% coverage.
+ 
+---
+
+### Supabase Config
+I configured database for local and production envs. Locally, I used .NET User Secrets for credential storage. For Azure, I set connection strings as Application Settings.
+
+---
+
+### API Testing
+I tested all endpoints to verify correct operation. This included validating GET requests for retrieving vehicle and parts data, testing POST requests for adding records, and confirming PUT and DELETE operations modified the database correctly.
+ 
+---
+
+### Vehicle Registration and Parts Filtering System
+I implemented vehicle registration functionality allowing users to add vehicles to their account by selecting make, model, and year. The system stores this information in the Vehicles table with relationships to user accounts.
+
+I developed the parts filtering system that uses the selected vehicle's specifications to query the database. When a user selects their vehicle (for example, a 2022 BMW X5), the system returns only compatible parts from the AutoParts table, filtering by make, model, and engine type.
+ 
+---
+
+### Admin Controls 
+I built the admin functionality accessible through an Admin Panel in the application. This provides privileged users with four capabilities: Add Parts, Add Vehicles, Delete Parts, and Delete Vehicles.
+
+I implemented access control to restrict these operations to admin accounts only.
+
+---
+
+### Internationalization
+I implemented internationalization support, allowing for language switching between English and Irish. This involved creating translation files for both languages and configuring the API to serve localized content based on the selected language.
+
+ 
